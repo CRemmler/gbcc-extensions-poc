@@ -4,7 +4,7 @@ Interface = (function() {
   var items = {};
   var passCodes = {};
   var roomNames = {};
-  
+
   function displayLoginInterface(rooms, components) {
     var roomButtonHtml, roomButtonId;
     setupItems();

@@ -10,6 +10,8 @@ var activityType = undefined;
 
   
 jQuery(document).ready(function() {
+  $("body").append("<img id='imageLayer' style='display:none'>")
+
   var userId;
   var userType;
   var turtleDict = {};
