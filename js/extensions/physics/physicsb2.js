@@ -81,15 +81,15 @@ Physicsb2 = (function() {
   //Physics.createWorld([10, [21, 21] ])
   function createWorld(m) {
     
-    console.log(m);
+    //console.log(m);
     bodyObj = {};
     turtleObj = {};
-    bindElements();
+    //bindElements();
     var gravity = m[0]
     var range = m[1];
     wrap = m[2];
     
-    console.log("create world "+gravity[0]+" "+gravity[1]+" "+range[0]+" "+range[1]+" "+wrap[0]+" "+wrap[1]);
+    //console.log("create world "+gravity[0]+" "+gravity[1]+" "+range[0]+" "+range[1]+" "+wrap[0]+" "+wrap[1]);
     
     NLOGO_WIDTH = range[0];
     NLOGO_HEIGHT = range[1];
@@ -127,8 +127,32 @@ Physicsb2 = (function() {
   }
 
   function startWorld() {
-    console.log("start world");
+    //console.log("start world");
     if (world) {
+      
+        for (id in bodyObj)
+        {
+          b = bodyObj[id];
+          if (b.GetType() == b2Body.b2_dynamicBody || b.GetType() === b2Body.b2_kinematicBody) {
+            if (universe.model.turtles[id].xcor != undefined
+               && universe.model.turtles[id].ycor != undefined 
+               && universe.model.turtles[id].heading != undefined) 
+            {
+              if (id != -1 && universe.model.turtles && universe.model.turtles[id]) {
+                var pos = nlogotobox2d([universe.model.turtles[id].xcor, universe.model.turtles[id].ycor]);
+                var posVector = new b2Vec2();
+                posVector.x = pos[0];
+                posVector.y = pos[1];
+                b.SetPosition(posVector);
+                var heading = degreestoradians(universe.model.turtles[id].heading);
+                //b.SetTransform(b.GetPosition(), heading);
+                b.SetAngle(heading);
+              }
+            }
+          }
+          
+      }
+    
       window.clearInterval(physicsWorld);      
       //p = $( "#box2d-canvas");
       //canvasPosition = p.position();
@@ -138,7 +162,7 @@ Physicsb2 = (function() {
   }
         
   function stopWorld() {
-    console.log("stop world");
+    //console.log("stop world");
     window.clearInterval(physicsWorld);
     running = false;
   }
@@ -151,7 +175,7 @@ Physicsb2 = (function() {
     var angle = m[4];
     
     var box2dCoords = nlogotobox2d(nlogoCoords);
-    console.log("add body "+id+" "+behavior+" "+bodyA+" "+nlogoCoords+" "+box2dCoords+" "+angle);
+    //console.log("add body "+id+" "+behavior+" "+bodyA+" "+nlogoCoords+" "+box2dCoords+" "+angle);
     var bodyDef = new b2BodyDef;
     bodyDef.userData = {
       id: id,
@@ -174,8 +198,16 @@ Physicsb2 = (function() {
     bodyDef.angle = degreestoradians(angle);
     bodyDef.position.x = roundToTenths(box2dCoords[0]);
     bodyDef.position.y = roundToTenths(box2dCoords[1]);
-    console.log(bodyDef.position);
+    //console.log(bodyDef.position);
     bodyObj[id] = world.CreateBody(bodyDef);
+  }
+  
+  function updateBodyId(name, who) {
+    //console.log("updateBodyId " + name + " "+who);
+    bodyObj[who] = bodyObj[name];
+    //var tempBody = bodyObj[name];
+    delete bodyObj[name];
+    Physicsb2.getBodyObj(who).m_userData.id = who;
   }
   
   function roundToTenths(x) {
@@ -296,7 +328,7 @@ Physicsb2 = (function() {
       new b2Vec2(roundToTenths(coordsA[0]), roundToTenths(coordsA[1])), 
       new b2Vec2(roundToTenths(coordsB[0]), roundToTenths(coordsB[1])));   
     joint.collideConnected = (collideConnected === true) ? true : false;
-    console.log(joint);
+    //console.log(joint);
     world.CreateJoint(joint);
   }
   
@@ -310,10 +342,10 @@ Physicsb2 = (function() {
     var coordsA = nlogotobox2d(coords);
     var radians = degreestoradians(heading);
     //console.log(heading+" "+roundToTenths(Math.cos(radians)*amount)+" "+roundToTenths(Math.sin(radians)*amount));
-    console.log("apply force to "+bodyA+"{x:"+roundToTenths(Math.cos(radians)*amount)+"}"+
-                                        "{y:"+roundToTenths(Math.sin(radians)*amount)+"}"+
-        "b2Vec2("+roundToTenths(coordsA[0])+", "+roundToTenths(coordsA[1])+")"
-      );                                
+    //console.log("apply force to "+bodyA+"{x:"+roundToTenths(Math.cos(radians)*amount)+"}"+
+    //                                    "{y:"+roundToTenths(Math.sin(radians)*amount)+"}"+
+    //    "b2Vec2("+roundToTenths(coordsA[0])+", "+roundToTenths(coordsA[1])+")"
+    //  );                                
     bodyObj[bodyA].ApplyForce(
       {x:roundToTenths(Math.cos(radians)*amount), y:roundToTenths(Math.sin(radians)*amount)}, 
       new b2Vec2(roundToTenths(coordsA[0]), roundToTenths(coordsA[1])) );
@@ -415,17 +447,17 @@ Physicsb2 = (function() {
       console.log("redraw world");
       //universe.repaint();
       //world.triggerUpdate();
-      
-      console.log("DrawDebugData");
       world.DrawDebugData();
     }
   }
 
 
   function updateBodies() {
+    //console.log("update bodies");
     var b;
     universe.repaint();
     //world.triggerUpdate();
+    //default 1/60, 10, 10
     world.Step(
            1 / 60   //frame-rate
         ,  10       //velocity iterations
@@ -475,7 +507,7 @@ Physicsb2 = (function() {
 
   function updateOnce() {
     if (world) {
-      console.log("update once from updateOnce");
+      //console.log("update once from updateOnce");
       updateBodies();
       
       
@@ -484,15 +516,17 @@ Physicsb2 = (function() {
   
 
   function update() {
-    console.log("update");
-    var currentTime = new Date().getTime();
-    if (currentTime - lastUpdate > 300 ) { 
-      stopWorld(); 
-      return; 
-    }
+    //console.log("update");
+    //var currentTime = new Date().getTime();
+    //if (currentTime - lastUpdate > 300 ) { 
+    //  console.log("stop from here");
+    //  stopWorld(); 
+    //  return; 
+    //}
     
-    if (running) {
+    if (running) {//}&& (currentTime - lastUpdate > 5)) {
       updateBodies();
+      //lastUpdate = currentTime;
       //console.log("update");
 
       // mouse drags images
@@ -637,7 +671,8 @@ Physicsb2 = (function() {
     applyForce: applyForce,
     applyLinearImpulse: applyLinearImpulse,
     applyTorque: applyTorque,
-    applyAngularImpulse: applyAngularImpulse
+    applyAngularImpulse: applyAngularImpulse,
+    updateBodyId: updateBodyId
   };
 
 })();

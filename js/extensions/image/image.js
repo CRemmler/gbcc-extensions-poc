@@ -2,6 +2,7 @@
 Images = (function() {
   
   function importImage(filename) {
+    clearImage();
     var image = new Image();
     image.onload = function() {
       $("#imageLayer").prop("src",filename);
@@ -13,7 +14,11 @@ Images = (function() {
     
   }
   function clearImage() {
-    $("#imageLayer").attr("src","");
+    console.log("clear image");
+    $("#imageLayer").prop("src","");
+    Physics.clearWorld();
+    Maps.clearMap();
+    world.triggerUpdate();
   }
 
   return {

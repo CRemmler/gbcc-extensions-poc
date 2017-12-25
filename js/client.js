@@ -25,6 +25,8 @@ jQuery(document).ready(function() {
     userId = data.userId;
     userType = data.userType;
     Gallery.setupGallery({settings: data.gallerySettings, userId: userId});
+    Physics.setupInterface();
+    Maps.setupInterface();
     allowMultipleButtonsSelected = data.gallerySettings.allowMultipleSelections; 
     allowGalleryForeverButton = data.gallerySettings.allowGalleryControls;
     $(".roomNameInput").val(data.myRoom);

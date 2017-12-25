@@ -205,10 +205,15 @@ Interface = (function() {
   
   function addTeacherControls() {
     // add show/hide client view or tabs
+    var spanText;
     if (activityType === "hubnet") {
       $(".netlogo-view-container").append("<span class='teacher-controls' style='float:right'><input id='enableMirroring' checked type='checkbox'>Enable Mirroring</span>");
     } else {
-      $(".netlogo-view-container").append("<span class='teacher-controls' style='float:right'>Enable: <input id='enableView' checked type='checkbox'>View <input id='enableTabs' checked type='checkbox'>Tabs <input id='enableWidgets' checked type='checkbox'>Widgets</span>");
+      spanText = "<span class='teacher-controls' style='float:right'>Enable:";
+      spanText += "<input id='enableView' checked type='checkbox'>View";
+      spanText += "<input id='enableTabs' checked type='checkbox'>Tabs";
+      spanText += "<input id='enableWidgets' checked type='checkbox'>Widgets</span>";
+      $(".netlogo-view-container").append(spanText);
     }
     $(".netlogo-view-container").css("width", $(".netlogo-view-container canvas").css("width"));
     $("#enableView").click(function() {

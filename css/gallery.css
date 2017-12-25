@@ -188,3 +188,95 @@
 .gbcc-gallery .gray-border {
   border: 5px solid #ddd;
 }
+
+// extensions/
+.physics-controls {
+  background-color: #555;
+  padding: 5px;
+  border-radius: 3px;
+  position:absolute; 
+  top:10px; 
+  left:10px; 
+  color:white;
+}
+
+.physics-controls .inactive {
+  color: gray;
+}
+
+.physics-controls :not(.inactive) {
+  color: white;
+  cursor: pointer;
+}
+
+.physics-controls {
+  background-color: #555;
+  padding: 5px;
+  border-radius: 3px;
+  position:absolute; 
+  top:10px; 
+  left:10px; 
+  color:white;
+  border: 2px solid gray;
+}
+
+.maps-controls {
+  color: gray;
+}
+
+.maps-controls-left {
+  top: 5px; 
+  left: 5px; 
+  position: absolute;
+}
+
+.maps-controls-right {
+  top: 5px; 
+  text-align: center;
+  position: absolute;
+}
+
+.maps-zoom {
+  background-color: white;
+  padding: 5px;
+  border-radius: 3px;
+  width: 35px;
+  border: 2px solid #ddd;
+  margin-bottom: 3px;
+}
+
+.maps-search {
+  background-color: white;
+  padding: 5px;
+  border-radius: 3px;
+  border: 2px solid #ddd;
+  width: 85px;
+}
+
+.maps-search input {
+  width: 70px;
+}
+
+#mapsSearch input {
+  color: black;
+}
+
+.maps-pan {
+  background-color: white;
+  padding: 5px;
+  border-radius: 50%;
+  width: 35px;
+  border: 2px solid #ddd;
+}
+
+.maps-controls .inactive {
+  color: #ddd;
+}
+
+.maps-controls :not(.inactive) {
+  cursor: pointer;
+}
+
+.maps-controls span :not(.inactive):hover {
+  color: orange;
+}
