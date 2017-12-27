@@ -1,8 +1,8 @@
 
 Graph = (function() {
   
-  function importGraph() {
-    
+  function importGraph(settings) {
+    Images.clearImage();
   }
   
   function createPoint() {

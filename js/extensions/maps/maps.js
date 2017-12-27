@@ -16,7 +16,7 @@ Maps = (function() {
   function setupInterface() {
     viewWidth = $(".netlogo-canvas").css("width");
     viewHeight = $(".netlogo-canvas").css("height");
-    $("body").append("<div id='map' style='height:"+viewHeight+";width:"+viewWidth+";border:2px solid red; display:none;'></div>");
+    $("body").append("<div id='map' style='height:"+viewHeight+";width:"+viewWidth+";position:absolute; top: 0px; visibility:hidden;'></div>");
     var uluru = {lat: 30.307182, lng: -97.755996};
     map = new google.maps.Map(document.getElementById('map'), {
       zoom: zoom,
@@ -138,18 +138,23 @@ Maps = (function() {
   }
   
   function exportMap() {
-  //  return [zoom, [ location.lat(), location,lng()];
+    var result = [];
+    result.push(zoom);
+    var center = map.getCenter();
+    result.push([center.lng(), center.lat()]);
+    return result;
   }
   
   function createMarker(name, settings) {
-    var lat = settings[0];
-    var lng = settings[1];
+    var lat = 0;//settings[0];
+    var lng = 0;//settings[1];
     var marker = new google.maps.Marker({
       position: {lat: lat, lng: lng},
       map: map,
       title: 'Hello World!'
     });
     markers[name] = marker;
+    redrawMap();
   }
 
   function setMarkerXY(name, settings) {
@@ -157,8 +162,12 @@ Maps = (function() {
     var ycor = settings[1];
     var pixelX = universe.view.xPcorToCanvas(xcor);
     var pixelY = universe.view.yPcorToCanvas(ycor);
-    var pixelPercentX = 1 - (pixelX / (viewWidth.replace("px","") * 2));
-    var pixelPercentY = pixelY / (viewHeight.replace("px","") * 2);
+    //var pixelPercentX = 1 - (pixelX / (viewWidth.replace("px","") * 2));
+    //var pixelPercentY = pixelY / (viewHeight.replace("px","") * 2);
+    
+    var pixelPercentX = (pixelX / (viewWidth.replace("px","") * 2));
+    var pixelPercentY = 1 - (pixelY / (viewHeight.replace("px","") * 2));
+    
     var boundaries = map.getBounds();
     var boundaryMinX = boundaries.b.b;
     var boundaryMinY = boundaries.f.b;
@@ -166,7 +175,8 @@ Maps = (function() {
     var boundaryMaxY = boundaries.f.f;
     var markerX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
     var markerY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
-    markers[name].setPosition({lng: markerX, lat: markerY});
+    markers[name].setPosition({lng: markerX, lat: markerY});    
+    redrawMap();
   }
   function getMarkerXY(name) {
     var markerPosition = markers[name].getPosition();
@@ -177,23 +187,24 @@ Maps = (function() {
     var boundaryMinY = boundaries.f.b;
     var boundaryMaxX = boundaries.b.f;
     var boundaryMaxY = boundaries.f.f;
-    var markerPercentX = 1 - (boundaryMaxX - markerPositionX) / (boundaryMaxX - boundaryMinX);
+    var markerPercentX = 1 - ((boundaryMaxX - markerPositionX) / (boundaryMaxX - boundaryMinX));
     var markerPercentY = (boundaryMaxY - markerPositionY) / (boundaryMaxY - boundaryMinY);
     var pixelX = markerPercentX * viewWidth.replace("px","");
     var pixelY = markerPercentY * viewHeight.replace("px","");
     var patchXcor = universe.view.xPixToPcor(pixelX);
     var patchYcor = universe.view.yPixToPcor(pixelY);
-    //console.log("pxcor:"+patchXcor+" pycor:"+patchYcor);
+    redrawMap();
+    return ([patchXcor, patchYcor]);
   }
-  function setMarkerLatLng(name, settings) {
+  function setMarkerLngLat(name, settings) {
     var lng = settings[0];
     var lat = settings[1];
     markers[name].setPosition({lat: lat, lng: lng});
   }
   
-  function getMarkerLatLng(name) {
+  function getMarkerLngLat(name) {
     var markerPosition = markers[name].getPosition();
-    //console.log([markerPosition.lng(), markerPosition.lat()]);
+    return ([markerPosition.lng(), markerPosition.lat()]);
   }
   
   function removeMarker(name) {
@@ -203,13 +214,9 @@ Maps = (function() {
   
   function clearMap() {
     $(".maps-controls").css("display","none");
-  }
-  
-  function updateMarker() {
-    
-  }
-  function getMarker() {
-    
+    for (m in markers) {
+      removeMarker[m];
+    }
   }
   
   // for testing 
@@ -223,17 +230,16 @@ Maps = (function() {
     setupInterface: setupInterface,
     importMap: importMap,
     createMarker: createMarker,
-    updateMarker: updateMarker,
     removeMarker: removeMarker,
-    getMarker: getMarker,
     clearMap: clearMap,
     getMap: getMap,
     getMarkers, getMarkers,
+    exportMap: exportMap,
     redrawMap: redrawMap,
     getMarkerXY: getMarkerXY,
     setMarkerXY: setMarkerXY,
-    getMarkerLatLng: getMarkerLatLng,
-    setMarkerLatLng, setMarkerLatLng
+    getMarkerLngLat: getMarkerLngLat,
+    setMarkerLngLat, setMarkerLngLat
   };
  
 })();
