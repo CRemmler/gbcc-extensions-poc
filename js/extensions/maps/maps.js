@@ -115,12 +115,12 @@ Maps = (function() {
     src += "&maptype=roadmap";
     src += "&format=png&visual_refresh=true";
 
-    var markerPosition;
+    /*var markerPosition;
     for (m in markers) {
       markerPosition = markers[m].getPosition();
       src += "&markers=label:"+m+"%7C"+markerPosition.lat()+","+markerPosition.lng();
     }
-
+*/
     var image = new Image();
     image.onload = function() {
       $("#imageLayer").prop("src",src);
