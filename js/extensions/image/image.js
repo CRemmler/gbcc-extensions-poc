@@ -14,7 +14,7 @@ Images = (function() {
     
   }
   function clearImage() {
-    console.log("clear image");
+    //console.log("clear image");
     $("#imageLayer").prop("src","");
     Physics.clearWorld();
     Maps.clearMap();

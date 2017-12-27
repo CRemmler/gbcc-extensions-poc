@@ -1,13 +1,24 @@
+// Static Maps Dev guide
+// https://developers.google.com/maps/documentation/static-maps/intro#Markers
+
+// Google Maps API 
+// https://developers.google.com/maps/documentation/javascript/reference
 
 Maps = (function() {
 
-  var zoom = 13;
+  var zoom = 9;
   var location = "Austin TX";
+  var map;
+  var markers = {};
+  var viewWidth;
+  var viewHeight;
   
   function setupInterface() {
-    $("body").append("<div id='map' style='height:400px;width:400px;border:2px solid red;'></div>");
-    var uluru = {lat: -25.363, lng: 131.044};
-    var map = new google.maps.Map(document.getElementById('map'), {
+    viewWidth = $(".netlogo-canvas").css("width");
+    viewHeight = $(".netlogo-canvas").css("height");
+    $("body").append("<div id='map' style='height:"+viewHeight+";width:"+viewWidth+";border:2px solid red; display:none;'></div>");
+    var uluru = {lat: 30.307182, lng: -97.755996};
+    map = new google.maps.Map(document.getElementById('map'), {
       zoom: zoom,
       center: uluru
     });
@@ -15,7 +26,7 @@ Maps = (function() {
       position: uluru,
       map: map
     });
-        
+    
     spanText = "<div class='maps-controls'>";
     //left controls
     spanText += "<div class='maps-controls-left'>";
@@ -52,23 +63,38 @@ Maps = (function() {
   function setupEventListeners() {
     $(".maps-controls").on("click", "#mapsSearch", function() {
       location = $("#mapsSearch input").val();
+      var searchUrl = "https://maps.googleapis.com/maps/api/geocode/json?address="+location+"&key=AIzaSyDP3gg3Bp6UZBJnDx20Kk4c7FIfcF-z5e4";
+      $.get( searchUrl, function( data ) {
+        var locationCoords = data.results[0].geometry.location;
+        map.setCenter(locationCoords);
+      });
       redrawMap();
     });
     $(".maps-controls").on("click", "#mapsZoomIn", function() {
       zoom--;
+      map.setZoom(zoom);
       redrawMap();
     });
     $(".maps-controls").on("click", "#mapsZoomOut", function() {
       zoom++;
+      map.setZoom(zoom);
       redrawMap();
     });
     $(".maps-controls").on("click", "#mapsPanUp", function() {
+      map.panBy(0, -50);
+      redrawMap();
     });
     $(".maps-controls").on("click", "#mapsPanDown", function() {
+      map.panBy(0, 50);
+      redrawMap();
     });
     $(".maps-controls").on("click", "#mapsPanLeft", function() {
+      map.panBy(-50, 0);
+      redrawMap();
     });
     $(".maps-controls").on("click", "#mapsPanRight", function() {
+      map.panBy(50, 0);
+      redrawMap();
     });
   }
   
@@ -77,48 +103,30 @@ Maps = (function() {
   }
   
   function redrawMap() {
+    var center = map.getCenter();
+    location = center.lat()+","+center.lng();
     
-    //var src = 'https://maps.googleapis.com/maps/api/staticmap?center=Albany,+NY&zoom='+zoom+'&scale=1&size=500x500&maptype=roadmap&format=png&visual_refresh=true';  
-    var src = 'https://maps.googleapis.com/maps/api/staticmap?center='+location+'&zoom='+zoom+'&scale=1&size=500x500&maptype=roadmap&format=png&visual_refresh=true';  
+    var src = "https://maps.googleapis.com/maps/api/staticmap?";
+    src += "center="+location;
+    src += "&zoom="+zoom;
+    src += "&scale=1";
+    src += "&size="+viewWidth.replace("px","")+"x"+viewHeight.replace("px","");
+    //&maptype=roadmap&format=png&visual_refresh=true';  
+    src += "&maptype=roadmap";
+    src += "&format=png&visual_refresh=true";
+
+    var markerPosition;
+    for (m in markers) {
+      markerPosition = markers[m].getPosition();
+      src += "&markers=label:"+m+"%7C"+markerPosition.lat()+","+markerPosition.lng();
+    }
+
     var image = new Image();
     image.onload = function() {
       $("#imageLayer").prop("src",src);
       world.triggerUpdate();
     };
     image.src = src;
-    
-    
-    
-    /*var canvas = document.getElementById('map');
-    var imageData = canvas.toDataURL("image/png");
-    // Now browser starts downloading it instead of just showing it
-    var newData = imageData.replace(/^data:image\/png/, "data:application/octet-stream");
-    $("#imageLayer").attr("href", newData);
-*/
-/*
-    html2canvas($("#map"), {
-                onrendered: function(canvas) {
-                    theCanvas = canvas;
-                    document.body.appendChild(canvas);
-
-                    // Convert and download as image 
-                    Canvas2Image.saveAsPNG(canvas); 
-                    $("#imageLayer").append(canvas);
-                    // Clean up 
-                    //document.body.removeChild(canvas);
-                }
-            });
-            *//*
-            html2canvas(document.getElementById('map'), {
-        logging: true,
-        profile: true,
-        useCORS: true}).then(function(canvas) {
-    var data = canvas.toDataURL('image/jpeg', 0.9);
-    var src = encodeURI(data);
-    document.getElementById('imageLayer').src = src;
-    document.getElementById('size').innerHTML = src.length + ' bytes';
-});*/
-
   }
 
   function importMap(settings) {
@@ -128,22 +136,89 @@ Maps = (function() {
     redrawMap();
     resetInterface();
   }
-  function createMarker() {
-    
+  
+  function exportMap() {
+  //  return [zoom, [ location.lat(), location,lng()];
   }
+  
+  function createMarker(name, settings) {
+    var lat = settings[0];
+    var lng = settings[1];
+    var marker = new google.maps.Marker({
+      position: {lat: lat, lng: lng},
+      map: map,
+      title: 'Hello World!'
+    });
+    markers[name] = marker;
+  }
+
+  function setMarkerXY(name, settings) {
+    var xcor = settings[0];
+    var ycor = settings[1];
+    var pixelX = universe.view.xPcorToCanvas(xcor);
+    var pixelY = universe.view.yPcorToCanvas(ycor);
+    var pixelPercentX = 1 - (pixelX / (viewWidth.replace("px","") * 2));
+    var pixelPercentY = pixelY / (viewHeight.replace("px","") * 2);
+    var boundaries = map.getBounds();
+    var boundaryMinX = boundaries.b.b;
+    var boundaryMinY = boundaries.f.b;
+    var boundaryMaxX = boundaries.b.f;
+    var boundaryMaxY = boundaries.f.f;
+    var markerX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
+    var markerY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
+    markers[name].setPosition({lng: markerX, lat: markerY});
+  }
+  function getMarkerXY(name) {
+    var markerPosition = markers[name].getPosition();
+    var markerPositionX = markerPosition.lng();
+    var markerPositionY = markerPosition.lat();
+    var boundaries = map.getBounds();
+    var boundaryMinX = boundaries.b.b;
+    var boundaryMinY = boundaries.f.b;
+    var boundaryMaxX = boundaries.b.f;
+    var boundaryMaxY = boundaries.f.f;
+    var markerPercentX = 1 - (boundaryMaxX - markerPositionX) / (boundaryMaxX - boundaryMinX);
+    var markerPercentY = (boundaryMaxY - markerPositionY) / (boundaryMaxY - boundaryMinY);
+    var pixelX = markerPercentX * viewWidth.replace("px","");
+    var pixelY = markerPercentY * viewHeight.replace("px","");
+    var patchXcor = universe.view.xPixToPcor(pixelX);
+    var patchYcor = universe.view.yPixToPcor(pixelY);
+    //console.log("pxcor:"+patchXcor+" pycor:"+patchYcor);
+  }
+  function setMarkerLatLng(name, settings) {
+    var lng = settings[0];
+    var lat = settings[1];
+    markers[name].setPosition({lat: lat, lng: lng});
+  }
+  
+  function getMarkerLatLng(name) {
+    var markerPosition = markers[name].getPosition();
+    //console.log([markerPosition.lng(), markerPosition.lat()]);
+  }
+  
+  function removeMarker(name) {
+    markers[name].setMap(null);
+    delete markers[name];
+  }
+  
+  function clearMap() {
+    $(".maps-controls").css("display","none");
+  }
+  
   function updateMarker() {
-    
-  }
-  function removeMarker() {
     
   }
   function getMarker() {
     
   }
-  function clearMap() {
-    $(".maps-controls").css("display","none");
+  
+  // for testing 
+  function getMap() {
+    return map;
   }
-
+  function getMarkers() {
+    return markers;
+  }
   return {
     setupInterface: setupInterface,
     importMap: importMap,
@@ -151,9 +226,14 @@ Maps = (function() {
     updateMarker: updateMarker,
     removeMarker: removeMarker,
     getMarker: getMarker,
-    clearMap: clearMap
-    
-    
+    clearMap: clearMap,
+    getMap: getMap,
+    getMarkers, getMarkers,
+    redrawMap: redrawMap,
+    getMarkerXY: getMarkerXY,
+    setMarkerXY: setMarkerXY,
+    getMarkerLatLng: getMarkerLatLng,
+    setMarkerLatLng, setMarkerLatLng
   };
  
 })();
