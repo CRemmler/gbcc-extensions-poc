@@ -280,3 +280,38 @@
 .maps-controls span :not(.inactive):hover {
   color: orange;
 }
+
+.graph-controls {
+  position: absolute; 
+  //top: 5px; 
+  //left: 5px; 
+  font-size: 22px;
+  color: blue;
+}
+
+.graph-controls .selected {
+  display: inline-block;
+}
+
+.graph-controls :not(.selected) {
+  display: none;
+}
+#graphOn {
+  color: blue;
+}
+#graphOff {
+  color: gray;
+}
+
+#appletContainer {
+  position: absolute;
+  overflow: hidden;
+  top: 0px;
+}
+
+#appletContainer.selected {
+  border: 2px solid blue;
+}
+#appletContainer:not(.selected) {
+  border: 2px solid #aaa;
+}

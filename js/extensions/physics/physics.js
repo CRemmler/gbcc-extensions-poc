@@ -18,6 +18,7 @@ Physics = (function() {
       $("#physicsPlay").removeClass("inactive");
       $("#physicsPause").addClass("inactive");
     }
+    $("#physicsPlay").html("play");
     //if ($("#physicsSetup").hasClass("inactive")) { $("#physicsSetup").removeClass("inactive"); }
     //if (!($("#physicsPlay").hasClass("inactive"))) { $("#physicsPlay").addClass("inactive"); }
     //if (!($("#physicsPause").hasClass("inactive"))) { $("#physicsPause").addClass("inactive"); }
@@ -82,6 +83,7 @@ Physics = (function() {
     $(".physics-controls").on("click", "#physicsPlay", function() {
       if (!$(this).hasClass("inactive")) {
         startWorld();
+        $("#physicsPlay").html("resume");
       }
     });
     $(".physics-controls").on("click", "#physicsPause", function() {
@@ -107,6 +109,7 @@ Physics = (function() {
       for (var turtleId in universe.model.turtles) {
         world.turtleManager.getTurtle(turtleId).xcor = universe.model.turtles[turtleId].xcor;
         world.turtleManager.getTurtle(turtleId).ycor = universe.model.turtles[turtleId].ycor;
+        world.turtleManager.getTurtle(turtleId)._heading = universe.model.turtles[turtleId].heading;
       }
     }
   }

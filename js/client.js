@@ -7,6 +7,7 @@ var myData = {};
 var foreverButtonCode = new Object();
 var myUserType;
 var activityType = undefined;
+var drawPatches = true;
 
   
 jQuery(document).ready(function() {
@@ -28,6 +29,7 @@ jQuery(document).ready(function() {
     Gallery.setupGallery({settings: data.gallerySettings, userId: userId});
     Physics.setupInterface();
     Maps.setupInterface();
+    Graph.setupInterface();
     allowMultipleButtonsSelected = data.gallerySettings.allowMultipleSelections; 
     allowGalleryForeverButton = data.gallerySettings.allowGalleryControls;
     $(".roomNameInput").val(data.myRoom);

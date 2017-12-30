@@ -154,7 +154,7 @@ Maps = (function() {
       title: 'Hello World!'
     });
     markers[name] = marker;
-    redrawMap();
+    //redrawMap();
   }
 
   function setMarkerXY(name, settings) {
@@ -176,7 +176,7 @@ Maps = (function() {
     var markerX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
     var markerY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
     markers[name].setPosition({lng: markerX, lat: markerY});    
-    redrawMap();
+    //redrawMap();
   }
   function getMarkerXY(name) {
     var markerPosition = markers[name].getPosition();
@@ -193,7 +193,7 @@ Maps = (function() {
     var pixelY = markerPercentY * viewHeight.replace("px","");
     var patchXcor = universe.view.xPixToPcor(pixelX);
     var patchYcor = universe.view.yPixToPcor(pixelY);
-    redrawMap();
+    //redrawMap();
     return ([patchXcor, patchYcor]);
   }
   function setMarkerLngLat(name, settings) {
