@@ -111,7 +111,7 @@ Graph = (function() {
   function resetInterface() {
     $("#appletContainer").css("display","inline-block");
     $(".graph-controls").css("display","inline-block");
-    applet1.getAppletObject().setSize(parseFloat($(".netlogo-canvas").css("width")) - 5, parseFloat($(".netlogo-canvas").css("height")) + 70);
+    applet1.getAppletObject().setSize(parseFloat($(".netlogo-canvas").css("width")) - 5, parseFloat($(".netlogo-canvas").css("height")) - 5);
 
     updateGraph("graphOff");
     resizeAppletContainer();
