@@ -7,22 +7,33 @@ Graph = (function() {
     spanText +=       "<i id='graphOn' class='fa fa-toggle-on' aria-hidden='true'></i>";
     spanText +=       "<i id='graphOff' class='fa fa-toggle-off' aria-hidden='true'></i>";
     spanText +=    "</div>";
-    spanText +=    "<div id='appletContainer'></div>";
+    $(".netlogo-widget-container").append(spanText);
+    spanText =    "<div id='appletContainer'></div>";
     $(".netlogo-widget-container").append(spanText);
     $(".graph-controls").css("left", parseFloat($(".netlogo-view-container").css("left")) + parseFloat($(".netlogo-canvas").css("width")) + 8 + "px");
     $(".graph-controls").css("top", $(".netlogo-view-container").css("top"));
+    
     $("#appletContainer").css("width", parseFloat($(".netlogo-canvas").css("width")) - 5 + "px");
     $("#appletContainer").css("height", parseFloat($(".netlogo-canvas").css("height")) - 4 + "px");
+    
     $("#appletContainer").css("left", $(".netlogo-view-container").css("left"));
     $("#appletContainer").css("top", $(".netlogo-view-container").css("top"));
-    applet1 = new GGBApplet({filename: "js/extensions/graph/geogebra-export5.ggb","showToolbar":true}, true);
+    //applet1 = new GGBApplet({filename: "js/extensions/graph/geogebra-export5.ggb","showToolbar":true}, true);
+    
+    //applet1 = new GGBApplet({filename:"js/extensions/graph/geogebra-export7.ggb","showtoolbar":false, "enableShiftDragZoom":false, "showMenuBar":false, "showToolBar":false, "allowStyleBar": false}, true);
+    //applet1 = new GGBApplet({filename:"js/extensions/graph/geogebra-export5.ggb","showtoolbar":false}, true);
+    
+    
+    applet1 = new GGBApplet({filename: "js/extensions/graph/geogebra-export7.ggb","showToolbar":true}, true);
+    
+    
     applet1.inject('appletContainer');
-    $("#appletContainer").css("display", "none");
+    //$("#appletContainer").css("display", "none");
     setupEventListeners();
   }
 
   function resizeAppletContainer() {
-    if (scale === -1) {
+/*    if (scale === -1) {
       var widthOrig = parseFloat($("#appletContainer").css("width"));
       var heightOrig = parseFloat($("#appletContainer").css("height"));
       
@@ -43,7 +54,7 @@ Graph = (function() {
       }
     } else {
       $(".applet_scaler").css("transform", "matrix("+scale+", 0, 0, "+scale+", 0, 0)");
-    }
+    }*/
   }
   
   function updateGraph(state) {
@@ -52,20 +63,22 @@ Graph = (function() {
       $("#graphOn").addClass("selected");
       $("#appletContainer").addClass("selected");
       $(".netlogo-view-container").css("z-index","0");
-      if (applet1.getAppletObject()) { 
-        applet1.getAppletObject().showToolBar(true); 
-        applet1.getAppletObject().showMenuBar(true); 
-      }
+      //$("#appletContainer").addClass("selected");
+      //if (applet1.getAppletObject()) { 
+        //applet1.getAppletObject().showToolBar(true); 
+        //applet1.getAppletObject().showMenuBar(true); 
+      //}
       drawPatches = true;
     } else {
       $("#graphOn").removeClass("selected");
       $("#graphOff").addClass("selected");
       $("#appletContainer").removeClass("selected");
       $(".netlogo-view-container").css("z-index","1");
-      if (applet1.getAppletObject()) { 
-        applet1.getAppletObject().showToolBar(false); 
-        applet1.getAppletObject().showMenuBar(false); 
-      }
+      //$("#appletContainer").removeClass("selected");
+      //if (applet1.getAppletObject()) { 
+        //applet1.getAppletObject().showToolBar(false); 
+        //applet1.getAppletObject().showMenuBar(false); 
+      //}
       drawPatches = false;
     }
     world.triggerUpdate();
@@ -79,16 +92,27 @@ Graph = (function() {
       updateGraph("graphOn");
     });
     
-    resizeAppletContainer();
+    //resizeAppletContainer();
     $(window).resize(function() {
-      resizeAppletContainer();
+      //resizeAppletContainer();
     });
     $(".netlogo-view-container").css("background-color","transparent");
+    
+    //applet1.getAppletObject().setSize(parseFloat($(".netlogo-canvas").css("width")) + 200, parseFloat($(".netlogo-canvas").css("height")) + 200);
+
+    //console.log(parseFloat($(".netlogo-canvas").css("width")) + 200);
+    //console.log(parseFloat($(".netlogo-canvas").css("height")) + 200);
+
+    //$("#appletContainer").css("width", parseFloat($(".netlogo-canvas").css("width")) - 5 + "px");
+    //$("#appletContainer").css("height", parseFloat($(".netlogo-canvas").css("height")) - 4 + "px");
+    
   }
   
   function resetInterface() {
     $("#appletContainer").css("display","inline-block");
     $(".graph-controls").css("display","inline-block");
+    applet1.getAppletObject().setSize(parseFloat($(".netlogo-canvas").css("width")) - 5, parseFloat($(".netlogo-canvas").css("height")) + 70);
+
     updateGraph("graphOff");
     resizeAppletContainer();
   }
