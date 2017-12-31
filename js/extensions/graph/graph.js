@@ -28,7 +28,7 @@ Graph = (function() {
     
     
     applet1.inject('appletContainer');
-    //$("#appletContainer").css("display", "none");
+    $("#appletContainer").css("display", "none");
     setupEventListeners();
   }
 
