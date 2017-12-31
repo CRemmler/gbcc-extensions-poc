@@ -115,18 +115,17 @@ Maps = (function() {
     src += "&maptype=roadmap";
     src += "&format=png&visual_refresh=true";
 
-    /*var markerPosition;
-    for (m in markers) {
-      markerPosition = markers[m].getPosition();
-      src += "&markers=label:"+m+"%7C"+markerPosition.lat()+","+markerPosition.lng();
-    }
-*/
     var image = new Image();
     image.onload = function() {
       $("#imageLayer").prop("src",src);
       world.triggerUpdate();
     };
     image.src = src;
+    triggerMapUpdate();
+  }
+  
+  function triggerMapUpdate() {
+    if (procedures.gbccOnMapUpdate != undefined) { session.run('gbcc-on-map-update'); }
   }
 
   function importMap(settings) {
@@ -162,12 +161,8 @@ Maps = (function() {
     var ycor = settings[1];
     var pixelX = universe.view.xPcorToCanvas(xcor);
     var pixelY = universe.view.yPcorToCanvas(ycor);
-    //var pixelPercentX = 1 - (pixelX / (viewWidth.replace("px","") * 2));
-    //var pixelPercentY = pixelY / (viewHeight.replace("px","") * 2);
-    
     var pixelPercentX = (pixelX / (viewWidth.replace("px","") * 2));
     var pixelPercentY = 1 - (pixelY / (viewHeight.replace("px","") * 2));
-    
     var boundaries = map.getBounds();
     var boundaryMinX = boundaries.b.b;
     var boundaryMinY = boundaries.f.b;
@@ -176,7 +171,6 @@ Maps = (function() {
     var markerX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
     var markerY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
     markers[name].setPosition({lng: markerX, lat: markerY});    
-    //redrawMap();
   }
   function getMarkerXY(name) {
     var markerPosition = markers[name].getPosition();
@@ -193,7 +187,6 @@ Maps = (function() {
     var pixelY = markerPercentY * viewHeight.replace("px","");
     var patchXcor = universe.view.xPixToPcor(pixelX);
     var patchYcor = universe.view.yPixToPcor(pixelY);
-    //redrawMap();
     return ([patchXcor, patchYcor]);
   }
   function setMarkerLngLat(name, settings) {
@@ -226,6 +219,7 @@ Maps = (function() {
   function getMarkers() {
     return markers;
   }
+  
   return {
     setupInterface: setupInterface,
     importMap: importMap,

@@ -66,7 +66,7 @@ jQuery(document).ready(function() {
   });
 
   socket.on("gbcc user enters", function(data) {
-    console.log("enters "+data.userType);
+    //console.log("enters "+data.userType);
     if (data.userType === "teacher" && procedures.gbccOnTeacherEnter != undefined) 
     {
       session.run('gbcc-on-teacher-enter "'+data.userId+'"');

@@ -19,9 +19,6 @@ Physics = (function() {
       $("#physicsPause").addClass("inactive");
     }
     $("#physicsPlay").html("play");
-    //if ($("#physicsSetup").hasClass("inactive")) { $("#physicsSetup").removeClass("inactive"); }
-    //if (!($("#physicsPlay").hasClass("inactive"))) { $("#physicsPlay").addClass("inactive"); }
-    //if (!($("#physicsPause").hasClass("inactive"))) { $("#physicsPause").addClass("inactive"); }
   }
   
   function importPhysics(settings) {
@@ -75,11 +72,6 @@ Physics = (function() {
   
 
   function setupEventListeners() {
-    /*$(".physics-controls").on("click", "#physicsSetup", function() {
-      if (!$(this).hasClass("inactive")) {
-        setupWorld();
-      }
-    });*/
     $(".physics-controls").on("click", "#physicsPlay", function() {
       if (!$(this).hasClass("inactive")) {
         startWorld();
@@ -96,14 +88,12 @@ Physics = (function() {
   function startWorld() {
     $("#physicsPlay").addClass("inactive");
     $("#physicsPause").removeClass("inactive");
-    //$("#physicsSetup").addClass("inactive");
     Physicsb2.startWorld();
   }
   
   function stopWorld() {
     $("#physicsPause").addClass("inactive");
     $("#physicsPlay").removeClass("inactive");
-    //$("#physicsSetup").removeClass("inactive");
     Physicsb2.stopWorld();
     if (universe.model) {
       for (var turtleId in universe.model.turtles) {
@@ -113,18 +103,8 @@ Physics = (function() {
       }
     }
   }
-  
-  /*
-  function setupWorld() {
-    $("#physicsPlay").removeClass("inactive");
-    $("#physicsPause").addClass("inactive");
-    $("#physicsSetup").addClass("inactive");
-    Physicsb2.redrawWorld();
-  }
-  */
-  
+
   function clearWorld() {
-    
     console.log("clear physics");
     Physicsb2.stopWorld();
     $(".physics-controls").css("display","none");
