@@ -3,10 +3,15 @@ Graph = (function() {
   var applet1;
   var viewWidth;
   var viewHeight;
+  var viewOffsetWidth;
+  var viewOffsetHeight;
+  var graphWidth;
+  var graphHeight;
+  
   
   function setupInterface() {
-    viewWidth = $(".netlogo-canvas").css("width");
-    viewHeight = $(".netlogo-canvas").css("height");
+    viewWidth = parseFloat($(".netlogo-canvas").css("width"));
+    viewHeight = parseFloat($(".netlogo-canvas").css("height"));
     var spanText = "<div class='graph-controls'>";
     spanText +=       "<i id='graphOn' class='fa fa-toggle-on' aria-hidden='true'></i>";
     spanText +=       "<i id='graphOff' class='fa fa-toggle-off' aria-hidden='true'></i>";
@@ -60,6 +65,20 @@ Graph = (function() {
     $("#appletContainer").css("display","inline-block");
     $(".graph-controls").css("display","inline-block");
     applet1.getAppletObject().setSize(parseFloat($(".netlogo-canvas").css("width")) - 5, parseFloat($(".netlogo-canvas").css("height")) - 5);
+    
+    
+    var xml = $.parseXML(applet1.getAppletObject().getXML());
+    console.log(xml);
+    var $xml = $(xml);
+    $elements = $xml.find('size');
+    graphWidth = $elements.attr("width");
+    graphHeight = $elements.attr("height"); 
+    console.log(graphHeight);
+    console.log(viewHeight);
+    
+    viewOffsetWidth = viewWidth - graphWidth;
+    viewOffsetHeight = viewHeight - graphHeight;
+    console.log(viewOffsetHeight);
     updateGraph("graphOff");
   }
   
@@ -145,29 +164,24 @@ Graph = (function() {
   }
   
   function setPointXY(name, settings) {
-    console.log("setPointXY");
-    console.log("xy settings "+settings);
     var xcor = settings[0];
     var ycor = settings[1];
     var pixelX = universe.view.xPcorToCanvas(xcor);
     var pixelY = universe.view.yPcorToCanvas(ycor);
-    var pixelPercentX = (pixelX / (viewWidth.replace("px","") * 2));
-    var pixelPercentY = 1 - (pixelY / (viewHeight.replace("px","") * 2));
-    
+    pixelX -= (viewOffsetWidth * 2);
+    pixelY -= (viewOffsetHeight * 2);
+    var pixelPercentX = (pixelX / (graphWidth * 2));
+    var pixelPercentY = 1 - (pixelY / (graphHeight* 2));
     var boundaries = getBounds();
     var boundaryMinX = boundaries.xmin;
     var boundaryMinY = boundaries.ymin;
     var boundaryMaxX = boundaries.xmax;
     var boundaryMaxY = boundaries.ymax;
-    //console.log("boundaries are ",boundaries);
     var pointX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
     var pointY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
-    console.log("set point xy at graph xy settings "+pointX+" "+pointY);
     applet1.getAppletObject().evalCommand("a"+name+" = Point({"+pointX+", "+pointY+"})");
-    //points[name].setPosition({lng: pointX, lat: pointY});    
   }
   function getPointXY(name) {
-    console.log("getPointXY");
     var xcor = applet1.getAppletObject().getXcoord("a"+name);
     var ycor = applet1.getAppletObject().getYcoord("a"+name);
 
@@ -182,25 +196,26 @@ Graph = (function() {
     
     var pointPercentX = 1 - ((boundaryMaxX - pointPositionX) / (boundaryMaxX - boundaryMinX));
     var pointPercentY = (boundaryMaxY - pointPositionY) / (boundaryMaxY - boundaryMinY);
-    var pixelX = pointPercentX * viewWidth.replace("px","");
-    var pixelY = pointPercentY * viewHeight.replace("px","");
+    var pixelX = pointPercentX * graphWidth;
+    var pixelY = pointPercentY * graphHeight;
+    pixelX += (viewOffsetWidth * 2);    
+    pixelY += (viewOffsetHeight * 2);
+    
     var patchXcor = universe.view.xPixToPcor(pixelX);
     var patchYcor = universe.view.yPixToPcor(pixelY);
-    
-    console.log("xy settings "+patchXcor+" "+patchYcor);
     return ([patchXcor, patchYcor]);
   }
   function setPointGXY(name, settings) {
     var xcor = location[0];
     var ycor = location[1];
-    console.log("set point graph xy "+xcor+" "+ycor);
+    //console.log("set point graph xy "+xcor+" "+ycor);
     applet1.getAppletObject().evalCommand("a"+name+" = Point({"+xcor+", "+ycor+"})");
   }
   
   function getPointGXY(name) {
     var xcor = applet1.getAppletObject().getXcoord("a"+name);
     var ycor = applet1.getAppletObject().getYcoord("a"+name);
-    console.log("get point graph xy "+xcor+" "+ycor);
+    //console.log("get point graph xy "+xcor+" "+ycor);
     return ([xcor, ycor]);
   }
 
