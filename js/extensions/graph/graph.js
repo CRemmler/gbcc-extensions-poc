@@ -65,23 +65,18 @@ Graph = (function() {
     $("#appletContainer").css("display","inline-block");
     $(".graph-controls").css("display","inline-block");
     applet1.getAppletObject().setSize(parseFloat($(".netlogo-canvas").css("width")) - 5, parseFloat($(".netlogo-canvas").css("height")) - 5);
-    
-    
     var xml = $.parseXML(applet1.getAppletObject().getXML());
-    console.log(xml);
     var $xml = $(xml);
-    $elements = $xml.find('size');
+    var $elements = $xml.find('size');
     graphWidth = $elements.attr("width");
     graphHeight = $elements.attr("height"); 
-    console.log(graphHeight);
-    console.log(viewHeight);
-    
     viewOffsetWidth = viewWidth - graphWidth;
     viewOffsetHeight = viewHeight - graphHeight;
-    console.log(viewOffsetHeight);
     updateGraph("graphOff");
+    
   }
   
+    
   function triggerGraphUpdate() {
     if (procedures.gbccOnGraphUpdate != undefined) { session.run('gbcc-on-graph-update'); }
   }
@@ -117,6 +112,13 @@ Graph = (function() {
   function clearGraph() {
     $(".graph-controls").css("display","none");
     $("#appletContainer").css("display","none");
+    var xml = $.parseXML(applet1.getAppletObject().getXML());
+    var $xml = $(xml);
+    var $construction = $xml.find('construction');
+    $construction.find('element').each(function(){
+      console.log($(this).attr('label'));
+      Graph.getApplet().getAppletObject().evalCommand("Delete("+$(this).attr('label')+")");
+    });
     updateGraph("graphOn");
   }
   
