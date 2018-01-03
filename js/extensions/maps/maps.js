@@ -102,7 +102,7 @@ Maps = (function() {
     $(".maps-controls").css("display","inline-block");    
   }
   
-  function redrawMap() {
+  function getMapAsString() {
     var center = map.getCenter();
     location = center.lat()+","+center.lng();
     
@@ -114,7 +114,11 @@ Maps = (function() {
     //&maptype=roadmap&format=png&visual_refresh=true';  
     src += "&maptype=roadmap";
     src += "&format=png&visual_refresh=true";
-
+    return src;
+  }
+  
+  function redrawMap() {
+    var src = getMapAsString();
     var image = new Image();
     image.onload = function() {
       $("#imageLayer").prop("src",src);
@@ -233,7 +237,8 @@ Maps = (function() {
     getMarkerXY: getMarkerXY,
     setMarkerXY: setMarkerXY,
     getMarkerLngLat: getMarkerLngLat,
-    setMarkerLngLat, setMarkerLngLat
+    setMarkerLngLat: setMarkerLngLat,
+    getMapAsString: getMapAsString
   };
  
 })();

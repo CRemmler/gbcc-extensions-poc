@@ -1,18 +1,18 @@
 {
   "interfaceJs": {
     "loginComponents": {
-      "componentRange": [11,11]
+      "componentRange": [12,12]
     },
     "studentComponents": {
-      "componentRange": [0,10]
+      "componentRange": [0,11]
     },
     "teacherComponents": {
-      "componentRange": [0,10]
+      "componentRange": [0,11]
     }
   },
   "galleryJs": {
     "allowTabs": true, 
-    "allowMultipleLayers": true, 
+    "allowMultipleLayers": false, 
     "allowMultipleSelections": true, 
     "allowCanvasForeverButtons": true, 
     "allowGalleryControls": true, 
