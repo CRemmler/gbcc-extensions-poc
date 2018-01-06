@@ -22,7 +22,11 @@ Physics = (function() {
   }
   
   function importPhysics(settings) {
-    Images.clearImage();
+    //Images.clearImage();
+    Physics.clearWorld();
+    Maps.clearMap();
+    Graph.clearGraph();
+    world.triggerUpdate();
     Physicsb2.createWorld(settings);
     resetInterface();
   }

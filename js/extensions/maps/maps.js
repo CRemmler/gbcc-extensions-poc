@@ -135,7 +135,11 @@ Maps = (function() {
   function importMap(settings) {
     zoom = settings[0];
     location = settings[1];
-    Images.clearImage();
+    //Images.clearImage();
+    Physics.clearWorld();
+    Maps.clearMap();
+    Graph.clearGraph();
+    world.triggerUpdate();
     redrawMap();
     resetInterface();
   }

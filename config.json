@@ -1,13 +1,13 @@
 {
   "interfaceJs": {
     "loginComponents": {
-      "componentRange": [12,12]
+      "componentRange": [13,13]
     },
     "studentComponents": {
-      "componentRange": [0,11]
+      "componentRange": [0,12]
     },
     "teacherComponents": {
-      "componentRange": [0,11]
+      "componentRange": [0,12]
     }
   },
   "galleryJs": {

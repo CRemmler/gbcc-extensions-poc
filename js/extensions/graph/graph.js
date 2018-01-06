@@ -82,7 +82,11 @@ Graph = (function() {
   }
 
   function importGraph(settings) {
-    Images.clearImage();
+    //Images.clearImage();
+    Physics.clearWorld();
+    Maps.clearMap();
+    Graph.clearGraph();
+    world.triggerUpdate();
     resetInterface();
   }
   
