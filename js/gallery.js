@@ -322,16 +322,7 @@ Gallery = (function() {
     data.id = data.id.replace(" ","-");
     $("#"+data.id).attr("src", data.src);
   }
-  
-  function updateMapCard(data) {
-    console.log("create text card");
-    var src = data.src.replace("gallery-map","");
-    console.log(src);
-    canvasImg.onload = function() {
-      $("#"+data.id).prop("src",src);
-    }
-    canvasImg.src = src;
-  }
+
 
   function createTextCard(data) {
     newSpan = "<span class=\"card card-text\"><span id=\""+data.id+"\" class=\"text-span\"><br>"+data.src.replace("gallery-text","")+"</span></span>";
@@ -339,24 +330,6 @@ Gallery = (function() {
     var zIndex = $("#gallery-item-"+data.userId+" span:not(.text-span)").length - 5;
     $("#"+data.id).parent().css("z-index",zIndex);
     ($("#"+data.id).parent()).click(function() { cardClickHandler(this); });
-  }
-  
-  function createMapCard(data) {  
-    console.log("ceate map card");
-    var canvasImg = new Image();
-    data.id = data.id.replace(" ","-");
-    newSpan = "<span class=\"card card-image\"><img id='"+data.id+"'></span>";
-    $("#gallery-item-"+data.userId).append(newSpan);
-    var zIndex = $("#gallery-item-"+data.userId+" span:not(.text-span)").length - 5;
-    $("#"+data.id).parent().css("z-index",zIndex);
-    ($("#"+data.id).parent()).click(function() { cardClickHandler(this); });  
-    
-    var src = data.src.replace("gallery-map","");
-    console.log(src);
-    canvasImg.onload = function() {
-      $("#"+data.id).prop("src",src);
-    }
-    canvasImg.src = src;
   }
   
   function updateTextCard(data) {
@@ -381,8 +354,6 @@ Gallery = (function() {
     if (allowMultipleLayers) {
       if (data.message.substring(0,15) === "<p>gallery-text") {
         ($("#" + data.tag + "-" + data.source).length === 0) ? createTextCard(canvasData) : updateTextCard(canvasData); 
-      } else if (data.message.substring(0,11) === "gallery-map") {
-        ($("#" + data.tag + "-" + data.source).length === 0) ? createMapCard(canvasData) : updateMapCard(canvasData);
       } else {
         ($("#" + data.tag + "-" + data.source).length === 0) ? createImageCard(canvasData) : updateImageCard(canvasData);
       }
@@ -392,8 +363,6 @@ Gallery = (function() {
       // make another one
       if (data.message.substring(0,15) === "<p>gallery-text") {
         createTextCard(canvasData);
-      } else if (data.message.substring(0,11) === "gallery-map") {
-        createMapCard(canvasData);
       } else {
         createImageCard(canvasData);
       } 
@@ -462,6 +431,7 @@ Gallery = (function() {
     miniCtx.fillRect(0,((canvasWidth - height) / 2),width,height + 2);
     miniCtx.drawImage(document.getElementsByClassName("netlogo-canvas")[0], 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
     message = document.getElementById(miniCanvasId).toDataURL("image/jpeg", imageQuality); 
+    console.log(message);
     socket.emit("send reporter", {
       hubnetMessageSource: "all-users", 
       hubnetMessageTag: "canvas-view-"+key, 
@@ -470,37 +440,11 @@ Gallery = (function() {
   }
   
   function drawMap(key) {
-    var src = Maps.getMapAsString(); 
-    var message = "gallery-map"+src;
-    socket.emit("send reporter", {
-      hubnetMessageSource: "all-users", 
-      hubnetMessageTag: "canvas-map", 
-      hubnetMessage: message
-    }); 
+    Maps.broadcastMap();
   }
   
   function drawGraph(key) {
-    var miniCanvasId = is_safari ? "miniSafariCanvasView" : "miniCanvasView";
-    var dataObj = scaleCanvas($(".netlogo-canvas").width(), $(".netlogo-canvas").height());
-    var width = dataObj.width;
-    var height = dataObj.height;
-    var miniCanvas = document.getElementById(miniCanvasId);
-    var miniCtx = miniCanvas.getContext('2d');
-    var graphAsImg = Graph.getApplet().getAppletObject().getPNGBase64(1, false, 72);
-    var img1 = new Image();
-    img1.onload = function() {
-      miniCtx.fillStyle="#ffffff";
-      miniCtx.fillRect(0,0,canvasWidth,canvasWidth);
-      miniCtx.fillStyle="#000000";
-      miniCtx.drawImage(img1, 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
-      message = document.getElementById(miniCanvasId).toDataURL("image/jpeg", imageQuality); 
-      socket.emit("send reporter", {
-        hubnetMessageSource: "all-users", 
-        hubnetMessageTag: "canvas-view-"+key, 
-        hubnetMessage: message
-      }); 
-    }
-    img1.src = 'data:image/png;base64,' + graphAsImg;
+    Graph.broadcastGraph();
   }
   
   function drawPlot(originalPlotName) {

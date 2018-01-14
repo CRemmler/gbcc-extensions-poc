@@ -2,23 +2,30 @@
 Physics = (function() {
   
   function setupInterface() {
-    spanText = "<span class='physics-controls'>";
-    //spanText += "<span id='physicsSetup'>setup</span><span class='inactive'> | </span>";
-    //spanText += "<span id='physicsPlay' class='inactive'>play</span><span class='inactive'> | </span>";
-    spanText += "<span id='physicsPlay'>play</span><span class='inactive'> | </span>";
-    spanText += "<span id='physicsPause' class='inactive'>pause</span></span>";
-    $(".netlogo-view-container").append(spanText);
+    viewWidth = parseFloat($(".netlogo-canvas").css("width"));
+    viewHeight = parseFloat($(".netlogo-canvas").css("height"));
+    var spanText = "<div class='physics-controls'>";
+    spanText +=       "<i id='physicsOn' class='fa fa-toggle-on' aria-hidden='true'></i>";
+    spanText +=       "<i id='physicsOff' class='fa fa-toggle-off' aria-hidden='true'></i>";
+    spanText +=    "</div>";
+    $(".netlogo-widget-container").append(spanText);
+    spanText =    "<div id='physicsContainer'></div>";
+    $(".netlogo-widget-container").append(spanText);
+    $(".physics-controls").css("left", parseFloat($(".netlogo-view-container").css("left")) + parseFloat($(".netlogo-canvas").css("width")) + 8 + "px");
+    $(".physics-controls").css("top", $(".netlogo-view-container").css("top"));
+    $("#physicsContainer").css("width", parseFloat($(".netlogo-canvas").css("width")) - 5 + "px");
+    $("#physicsContainer").css("height", parseFloat($(".netlogo-canvas").css("height")) - 4 + "px");
+    $("#physicsContainer").css("left", $(".netlogo-view-container").css("left"));
+    $("#physicsContainer").css("top", $(".netlogo-view-container").css("top"));
+    $("#physicsContainer").css("display", "none");
     $(".physics-controls").css("display","none");
     setupEventListeners();
   }
   
   function resetInterface() {
+    $("#physicsContainer").css("display","inline-block");
     $(".physics-controls").css("display","inline-block");
-    if ($("#physicsPlay").hasClass("inactive")) {
-      $("#physicsPlay").removeClass("inactive");
-      $("#physicsPause").addClass("inactive");
-    }
-    $("#physicsPlay").html("play");
+    updatePhysics("physicsOff");
   }
   
   function importPhysics(settings) {
@@ -76,17 +83,38 @@ Physics = (function() {
   
 
   function setupEventListeners() {
-    $(".physics-controls").on("click", "#physicsPlay", function() {
-      if (!$(this).hasClass("inactive")) {
-        startWorld();
-        $("#physicsPlay").html("resume");
-      }
+    $(".physics-controls").on("click", "#physicsOn", function() {
+      updatePhysics("physicsOff");
+      triggerPhysicsUpdate();
+      stopWorld();
+      //Physicsb2.updateOnce();
     });
-    $(".physics-controls").on("click", "#physicsPause", function() {
-      if (!$(this).hasClass("inactive")) {
-        stopWorld();
-      }
+    $(".physics-controls").on("click", "#physicsOff", function() {
+      updatePhysics("physicsOn");
+      startWorld();
     });
+    $(".netlogo-view-container").css("background-color","transparent"); 
+  }
+  
+  function triggerPhysicsUpdate() {
+    if (procedures.gbccOnPhysicsUpdate != undefined) { session.run('gbcc-on-physics-update'); }
+  }
+
+  function updatePhysics(state) {
+    if (state === "physicsOn") {
+      $("#physicsOff").removeClass("selected");
+      $("#physicsOn").addClass("selected");
+      $("#physicsContainer").addClass("selected");
+      $(".netlogo-view-container").css("z-index","0");
+      //drawPatches = true;
+    } else {
+      $("#physicsOn").removeClass("selected");
+      $("#physicsOff").addClass("selected");
+      $("#physicsContainer").removeClass("selected");
+      $(".netlogo-view-container").css("z-index","1");
+      //drawPatches = false;
+    }
+    world.triggerUpdate();
   }
   
   function startWorld() {

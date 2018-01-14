@@ -1,9 +1,3 @@
-// Static Maps Dev guide
-// https://developers.google.com/maps/documentation/static-maps/intro#Markers
-
-// Google Maps API 
-// https://developers.google.com/maps/documentation/javascript/reference
-
 Maps = (function() {
 
   var zoom = 9;
@@ -14,118 +8,101 @@ Maps = (function() {
   var viewHeight;
   
   function setupInterface() {
-    viewWidth = $(".netlogo-canvas").css("width");
-    viewHeight = $(".netlogo-canvas").css("height");
-    $("body").append("<div id='map' style='height:"+viewHeight+";width:"+viewWidth+";position:absolute; top: 0px; visibility:hidden;'></div>");
-    var uluru = {lat: 30.307182, lng: -97.755996};
-    map = new google.maps.Map(document.getElementById('map'), {
-      zoom: zoom,
-      center: uluru
-    });
-    var marker = new google.maps.Marker({
-      position: uluru,
-      map: map
-    });
-    
-    spanText = "<div class='maps-controls'>";
-    //left controls
-    spanText += "<div class='maps-controls-left'>";
-    //search
-    spanText += "  <div class='maps-search'>";
-    spanText += "    <span id='mapsSearch'><input id='mapsSearchInputtype='text'> <i class='fa fa-search' aria-hidden='true'></i></span>";
-    spanText += "  </div>";
-    spanText += "</div>";
-    //right controls
-    spanText += "<div class='maps-controls-right'>";
-    //zoom
-    spanText += "  <div class='maps-zoom'>";
-    spanText += "    <span id='mapsZoomOut'><i class='fa fa-plus' aria-hidden='true'></i></span>";
-    spanText += "    <span class='inactive'> | </span>";
-    spanText += "    <span id='mapsZoomIn'><i class='fa fa-minus' aria-hidden='true'></i></span>";
-    spanText += "  </div>";
-    //span 
-    spanText += "  <div class='maps-pan'>";
-    spanText += "    <span id='mapsPanUp'><i class='fa fa-chevron-up' aria-hidden='true'></i></span><br>";
-    spanText += "    <span id='mapsPanLeft'><i class='fa fa-chevron-left' aria-hidden='true'></i></span>";
-    spanText += "    <span> <i class='fa fa-plus inactive' aria-hidden='true'></i> </span>";
-    spanText += "    <span id='mapsPanRight'><i class='fa fa-chevron-right' aria-hidden='true'></i></span><br>";
-    spanText += "    <span id='mapsPanDown'><i class='fa fa-chevron-down' aria-hidden='true'></i></span>";
-    spanText += "  </div>";  
-    spanText += "</div>";  
-    spanText += "</div>";
-    $(".netlogo-view-container").append(spanText);
-    var leftOffset = (Math.round($(".netlogo-view-container").css("width").replace("px","")) - 55) + "px";
-    $(".maps-controls-right").css("left",leftOffset);
-    $(".maps-controls").css("display","none");
+    viewWidth = parseFloat($(".netlogo-canvas").css("width"));
+    viewHeight = parseFloat($(".netlogo-canvas").css("height"));
+    var spanText = "<div class='map-controls'>";
+    spanText +=       "<i id='mapOn' class='fa fa-toggle-on' aria-hidden='true'></i>";
+    spanText +=       "<i id='mapOff' class='fa fa-toggle-off' aria-hidden='true'></i>";
+    spanText +=    "</div>";
+    $(".netlogo-widget-container").append(spanText);
+    spanText =    "<div id='mapContainer'></div>";
+    $(".netlogo-widget-container").append(spanText);
+    $(".map-controls").css("left", parseFloat($(".netlogo-view-container").css("left")) + parseFloat($(".netlogo-canvas").css("width")) + 8 + "px");
+    $(".map-controls").css("top", $(".netlogo-view-container").css("top"));
+    $("#mapContainer").css("width", parseFloat($(".netlogo-canvas").css("width")) - 5 + "px");
+    $("#mapContainer").css("height", parseFloat($(".netlogo-canvas").css("height")) - 4 + "px");
+    $("#mapContainer").css("left", $(".netlogo-view-container").css("left"));
+    $("#mapContainer").css("top", $(".netlogo-view-container").css("top"));
+    $("#mapContainer").css("display", "none");
+    map = L.map('mapContainer').setView([0,0], 13);
     setupEventListeners();
   }
   
   function setupEventListeners() {
-    $(".maps-controls").on("click", "#mapsSearch", function() {
-      location = $("#mapsSearch input").val();
-      var searchUrl = "https://maps.googleapis.com/maps/api/geocode/json?address="+location+"&key=AIzaSyDP3gg3Bp6UZBJnDx20Kk4c7FIfcF-z5e4";
-      $.get( searchUrl, function( data ) {
-        var locationCoords = data.results[0].geometry.location;
-        map.setCenter(locationCoords);
-      });
-      redrawMap();
+    $(".map-controls").on("click", "#mapOn", function() {
+      updateMap("mapOff");
+      triggerMapUpdate();
     });
-    $(".maps-controls").on("click", "#mapsZoomIn", function() {
-      zoom--;
-      map.setZoom(zoom);
-      redrawMap();
+    $(".map-controls").on("click", "#mapOff", function() {
+      updateMap("mapOn");
     });
-    $(".maps-controls").on("click", "#mapsZoomOut", function() {
-      zoom++;
-      map.setZoom(zoom);
-      redrawMap();
-    });
-    $(".maps-controls").on("click", "#mapsPanUp", function() {
-      map.panBy(0, -50);
-      redrawMap();
-    });
-    $(".maps-controls").on("click", "#mapsPanDown", function() {
-      map.panBy(0, 50);
-      redrawMap();
-    });
-    $(".maps-controls").on("click", "#mapsPanLeft", function() {
-      map.panBy(-50, 0);
-      redrawMap();
-    });
-    $(".maps-controls").on("click", "#mapsPanRight", function() {
-      map.panBy(50, 0);
-      redrawMap();
-    });
+    $(".netlogo-view-container").css("background-color","transparent"); 
   }
   
   function resetInterface() {
-    $(".maps-controls").css("display","inline-block");    
+    $("#mapContainer").css("display","inline-block");
+    $(".map-controls").css("display","inline-block");
+    updateMap("mapOff");
   }
   
+  function updateMap(state) {
+  //  map.redraw();
+    map.invalidateSize();
+    if (state === "mapOn") {
+      $("#mapOff").removeClass("selected");
+      $("#mapOn").addClass("selected");
+      $("#mapContainer").addClass("selected");
+      $(".netlogo-view-container").css("z-index","0");
+      drawPatches = true;
+    } else {
+      $("#mapOn").removeClass("selected");
+      $("#mapOff").addClass("selected");
+      $("#mapContainer").removeClass("selected");
+      $(".netlogo-view-container").css("z-index","1");
+      drawPatches = false;
+    }
+    world.triggerUpdate();
+  }
+
+
   function getMapAsString() {
-    var center = map.getCenter();
-    location = center.lat()+","+center.lng();
-    
-    var src = "https://maps.googleapis.com/maps/api/staticmap?";
-    src += "center="+location;
-    src += "&zoom="+zoom;
-    src += "&scale=1";
-    src += "&size="+viewWidth.replace("px","")+"x"+viewHeight.replace("px","");
-    //&maptype=roadmap&format=png&visual_refresh=true';  
-    src += "&maptype=roadmap";
-    src += "&format=png&visual_refresh=true";
-    return src;
+
   }
   
   function redrawMap() {
-    var src = getMapAsString();
-    var image = new Image();
-    image.onload = function() {
-      $("#imageLayer").prop("src",src);
-      world.triggerUpdate();
-    };
-    image.src = src;
-    triggerMapUpdate();
+
+  }
+  
+  function broadcastMap(key) {
+    /*
+    html2canvas($("#mapContainer"), {
+      useCORS: true,
+         onrendered: function(canvas) {
+             message = canvas.toDataURL("image/png");
+             socket.emit("send reporter", {
+               hubnetMessageSource: "all-users", 
+               hubnetMessageTag: "canvas-view-"+key, 
+               hubnetMessage: message
+             }); 
+            //document.body.appendChild(canvas);
+         }
+     });    */
+     
+     html2canvas(document.getElementById("mapContainer"), {
+    useCORS: true
+    }).then(function (canvas) {
+      message = canvas.toDataURL("image/png");
+      socket.emit("send reporter", {
+        hubnetMessageSource: "all-users", 
+        hubnetMessageTag: "canvas-view-"+key, 
+        hubnetMessage: message
+      }); 
+     //document.body.appendChild(canvas);
+        //document.body.appendChild(canvas);
+    })
+     
+
+     
   }
   
   function triggerMapUpdate() {
@@ -135,6 +112,10 @@ Maps = (function() {
   function importMap(settings) {
     zoom = settings[0];
     location = settings[1];
+    map.setView(location, zoom);
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
     //Images.clearImage();
     Physics.clearWorld();
     Maps.clearMap();
@@ -145,23 +126,12 @@ Maps = (function() {
   }
   
   function exportMap() {
-    var result = [];
-    result.push(zoom);
-    var center = map.getCenter();
-    result.push([center.lng(), center.lat()]);
-    return result;
+
   }
   
   function createMarker(name, settings) {
-    var lat = 0;//settings[0];
-    var lng = 0;//settings[1];
-    var marker = new google.maps.Marker({
-      position: {lat: lat, lng: lng},
-      map: map,
-      title: 'Hello World!'
-    });
+    var marker = L.marker([0, 0]).addTo(map);
     markers[name] = marker;
-    //redrawMap();
   }
 
   function setMarkerXY(name, settings) {
@@ -169,54 +139,58 @@ Maps = (function() {
     var ycor = settings[1];
     var pixelX = universe.view.xPcorToCanvas(xcor);
     var pixelY = universe.view.yPcorToCanvas(ycor);
-    var pixelPercentX = (pixelX / (viewWidth.replace("px","") * 2));
-    var pixelPercentY = 1 - (pixelY / (viewHeight.replace("px","") * 2));
+    var pixelPercentX = 1 - (pixelX / (viewWidth * 2));
+    var pixelPercentY = (pixelY / (viewHeight * 2));
     var boundaries = map.getBounds();
-    var boundaryMinX = boundaries.b.b;
-    var boundaryMinY = boundaries.f.b;
-    var boundaryMaxX = boundaries.b.f;
-    var boundaryMaxY = boundaries.f.f;
+    var boundaryMinX = boundaries._northEast.lng;
+    var boundaryMinY = boundaries._northEast.lat;
+    var boundaryMaxX = boundaries._southWest.lng;
+    var boundaryMaxY = boundaries._southWest.lat;
     var markerX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
     var markerY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
-    markers[name].setPosition({lng: markerX, lat: markerY});    
+    var newLatLng = new L.LatLng(markerY, markerX);
+    markers[name].setLatLng(newLatLng); 
   }
+  
   function getMarkerXY(name) {
     var markerPosition = markers[name].getPosition();
     var markerPositionX = markerPosition.lng();
     var markerPositionY = markerPosition.lat();
     var boundaries = map.getBounds();
-    var boundaryMinX = boundaries.b.b;
-    var boundaryMinY = boundaries.f.b;
-    var boundaryMaxX = boundaries.b.f;
-    var boundaryMaxY = boundaries.f.f;
+    var boundaryMinX = boundaries._northEast.lng;
+    var boundaryMinY = boundaries._northEast.lat;
+    var boundaryMaxX = boundaries._southWest.lng;
+    var boundaryMaxY = boundaries._southWest.lat;
     var markerPercentX = 1 - ((boundaryMaxX - markerPositionX) / (boundaryMaxX - boundaryMinX));
     var markerPercentY = (boundaryMaxY - markerPositionY) / (boundaryMaxY - boundaryMinY);
-    var pixelX = markerPercentX * viewWidth.replace("px","");
-    var pixelY = markerPercentY * viewHeight.replace("px","");
+    var pixelX = markerPercentX * viewWidth;
+    var pixelY = markerPercentY * viewHeight;
     var patchXcor = universe.view.xPixToPcor(pixelX);
     var patchYcor = universe.view.yPixToPcor(pixelY);
     return ([patchXcor, patchYcor]);
   }
+  
   function setMarkerLngLat(name, settings) {
     var lng = settings[0];
     var lat = settings[1];
-    markers[name].setPosition({lat: lat, lng: lng});
+    var newLatLng = new L.LatLng(lng, lat);
+    markers[name].setLatLng(newLatLng); 
   }
   
   function getMarkerLngLat(name) {
-    var markerPosition = markers[name].getPosition();
-    return ([markerPosition.lng(), markerPosition.lat()]);
+    var markerPosition = markers[name].getLatLng();
+    return ([markerPosition.lng, markerPosition.lat]);
   }
   
   function removeMarker(name) {
-    markers[name].setMap(null);
-    delete markers[name];
+    map.removeLayer(markers[marker]);
   }
   
   function clearMap() {
-    $(".maps-controls").css("display","none");
-    for (m in markers) {
-      removeMarker[m];
+    $(".map-controls").css("display","none");
+    $("#mapContainer").css("display","none");
+    for (marker in markers) {
+      removeMarker(name);
     }
   }
   
@@ -224,6 +198,7 @@ Maps = (function() {
   function getMap() {
     return map;
   }
+  
   function getMarkers() {
     return markers;
   }
@@ -242,7 +217,8 @@ Maps = (function() {
     setMarkerXY: setMarkerXY,
     getMarkerLngLat: getMarkerLngLat,
     setMarkerLngLat: setMarkerLngLat,
-    getMapAsString: getMapAsString
+    getMapAsString: getMapAsString,
+    broadcastMap: broadcastMap
   };
  
 })();

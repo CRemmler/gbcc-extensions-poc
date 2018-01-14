@@ -96,7 +96,7 @@ Physicsb2 = (function() {
     if (!p) {
       if ($("#box2d-canvas").length === 0) { 
         //$("body").append("<div style='border:2px solid red; width:400px;'><canvas class='netlogo-canvas2' id='box2d-canvas' style='width:400px; height:400px'></canvas></div>"); 
-        $(".netlogo-canvas").attr("id","box2d-canvas"); 
+        //$(".netlogo-canvas").attr("id","box2d-canvas"); 
         //$("#box2d-canvas").css("border", "2px solid red");
       }
       p = $( "#box2d-canvas");
@@ -162,7 +162,6 @@ Physicsb2 = (function() {
   }
         
   function stopWorld() {
-    //console.log("stop world");
     window.clearInterval(physicsWorld);
     running = false;
   }
@@ -459,7 +458,7 @@ Physicsb2 = (function() {
     //world.triggerUpdate();
     //default 1/60, 10, 10
     world.Step(
-           1 / 60   //frame-rate
+           1 / 30   //frame-rate
         ,  10       //velocity iterations
         ,  10       //position iterations
     );

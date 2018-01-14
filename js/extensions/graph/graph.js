@@ -8,7 +8,6 @@ Graph = (function() {
   var graphWidth;
   var graphHeight;
   
-  
   function setupInterface() {
     viewWidth = parseFloat($(".netlogo-canvas").css("width"));
     viewHeight = parseFloat($(".netlogo-canvas").css("height"));
@@ -25,7 +24,6 @@ Graph = (function() {
     $("#appletContainer").css("height", parseFloat($(".netlogo-canvas").css("height")) - 4 + "px");
     $("#appletContainer").css("left", $(".netlogo-view-container").css("left"));
     $("#appletContainer").css("top", $(".netlogo-view-container").css("top"));
-
     applet1 = new GGBApplet({filename: "js/extensions/graph/geogebra-export7.ggb","showToolbar":true}, true);
     applet1.inject('appletContainer');
     $("#appletContainer").css("display", "none");
@@ -76,6 +74,72 @@ Graph = (function() {
     
   }
   
+  var canvasLength = 200; 
+  var canvasWidth = 200;
+  
+  function broadcastGraph(key) {
+    html2canvas($("#appletContainer"), {
+         onrendered: function(canvas) {
+             message = canvas.toDataURL("image/png");
+             //socket.emit("send reporter", {
+              // hubnetMessageSource: "all-users", 
+            //   hubnetMessageTag: "canvas-view-"+key, 
+            //   hubnetMessage: message
+            // }); 
+             $("body").append("<img id='image1' src="+message+">");
+             
+
+             var canvas = document.getElementById('box2d-canvas');
+             var dataURL = canvas.toDataURL();
+             $("body").append("<img id = 'image2' src="+dataURL+">");  
+             
+             
+
+             var imageQuality = 0.5;
+              var miniCanvasId = "miniSafariCanvasView";
+              var dataObj = scaleCanvas($(".netlogo-canvas").width(), $(".netlogo-canvas").height());
+              var width = dataObj.width;
+              var height = dataObj.height;
+              var miniCanvas = document.getElementById(miniCanvasId);
+              var miniCtx = miniCanvas.getContext('2d');
+              miniCtx.fillStyle="#ccc";
+              miniCtx.fillRect(0,0,canvasWidth,canvasWidth);
+              //miniCtx.fillStyle="#000000";
+              //miniCtx.fillRect(0,((canvasWidth - height) / 2),width,height + 2);
+              
+              miniCtx.drawImage(document.getElementById("image1"), 0, 0, canvasWidth,canvasWidth);
+              miniCtx.drawImage(document.getElementById("image2"), 0, 0, canvasWidth,canvasWidth);
+              $("#miniSafariCanvasView").css("display","inline-block");
+              //miniCtx.drawImage(document.getElementById("image1"), 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
+              //miniCtx.drawImage(document.getElementById("image2"), 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
+              
+              message = document.getElementById(miniCanvasId).toDataURL("image/jpeg", imageQuality); 
+              console.log(message);
+              socket.emit("send reporter", {
+                hubnetMessageSource: "all-users", 
+                hubnetMessageTag: "canvas-view-"+key, 
+                hubnetMessage: message
+              }); 
+              
+
+         }
+         
+     });     
+  }
+
+  function scaleCanvas(sourceWidth, sourceHeight) {
+    var dataObj = {};
+    var ratio = sourceWidth / sourceHeight;
+    var width = canvasWidth;
+    var height = canvasWidth;
+    (sourceWidth > sourceHeight) ? height = width / ratio : width = height * ratio;
+    dataObj.width = width;
+    dataObj.height = height;
+    return dataObj;
+  }
+
+
+
     
   function triggerGraphUpdate() {
     if (procedures.gbccOnGraphUpdate != undefined) { session.run('gbcc-on-graph-update'); }
@@ -114,6 +178,7 @@ Graph = (function() {
   } 
 
   function clearGraph() {
+    //updateGraph("graphOff");
     $(".graph-controls").css("display","none");
     $("#appletContainer").css("display","none");
     var xml = $.parseXML(applet1.getAppletObject().getXML());
@@ -241,7 +306,8 @@ Graph = (function() {
     setPointXY: setPointXY,
     getPointXY: getPointXY,
     setPointGXY: setPointGXY,
-    getPointGXY: getPointGXY
+    getPointGXY: getPointGXY,
+    broadcastGraph: broadcastGraph,
   };
  
 })();
