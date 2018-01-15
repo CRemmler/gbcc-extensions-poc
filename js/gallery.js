@@ -42,8 +42,39 @@ Gallery = (function() {
       galleryControlSpan += "<span class='gallery-left'><input type='checkbox' id='selectAll'> Select All <input type='checkbox' id='foreverSelectAll'> Forever</span>";
       galleryControlSpan += "</div>";
       $(".netlogo-gallery-tab-content").append(galleryControlSpan);
-      socket.emit("request gallery data", {userId: myUserId, status: "select"}); 
+      socket.emit("request gallery data", {userId: myUserId, status: "select"});
+      var defaultTabAreaWidth = parseFloat($(".netlogo-tab-area").css("width"));
+      var galleryTabWidth =  (parseFloat($(".netlogo-tab-area").css("width")) - 48) + "px";
+      var galleryExpandSpan = "<span id='galleryExpandIcon' style='left:"+galleryTabWidth+"'><i class='fa fa-expand' aria-hidden='true'></i></span>";
       
+      $(".netlogo-gallery-tab").append(galleryExpandSpan);
+      $( window ).resize(function() {
+        if ($(".netlogo-gallery-tab").hasClass("expand")) {
+          var galleryExpandWidth = parseFloat($("body").css("width")) - parseFloat($(".netlogo-model").css("width"));
+          $(".netlogo-gallery-tab").css("width", galleryExpandWidth - 80 + "px");
+          $(".netlogo-gallery-tab-content").css("width", galleryExpandWidth - 62 + "px");
+          var galleryTabWidth =  galleryExpandWidth - 98 + "px";
+          $("#galleryExpandIcon").css("left",galleryTabWidth);
+        }
+      });
+
+      $("#galleryExpandIcon").on("click", function() {
+        if ($(".netlogo-gallery-tab").hasClass("expand")) {
+          $(".netlogo-gallery-tab").removeClass("expand");
+          $(".netlogo-gallery-tab-content").removeClass("expand");
+          $(".netlogo-gallery-tab").css("width", defaultTabAreaWidth - 18 + "px");          
+          $(".netlogo-gallery-tab-content").css("width", defaultTabAreaWidth);
+          $("#galleryExpandIcon").css("left", defaultTabAreaWidth - 35 + "px");
+        } else {
+          $(".netlogo-gallery-tab").addClass("expand");
+          $(".netlogo-gallery-tab-content").addClass("expand");
+          var galleryExpandWidth = parseFloat($("body").css("width")) - parseFloat($(".netlogo-model").css("width"));
+          $(".netlogo-gallery-tab").css("width", galleryExpandWidth - 80 + "px");
+          $(".netlogo-gallery-tab-content").css("width", galleryExpandWidth - 62 + "px");
+          var galleryTabWidth =  galleryExpandWidth - 98 + "px";
+          $("#galleryExpandIcon").css("left",galleryTabWidth);
+        }
+      });
       $("#canvasSize").on("change", function() {
         if ($(".gbcc-gallery").hasClass("small")) { $(".gbcc-gallery").removeClass("small"); }
         if ($(".gbcc-gallery").hasClass("medium")) { $(".gbcc-gallery").removeClass("medium") }
