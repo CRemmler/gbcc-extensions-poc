@@ -71,61 +71,10 @@ Graph = (function() {
     viewOffsetWidth = viewWidth - graphWidth;
     viewOffsetHeight = viewHeight - graphHeight;
     updateGraph("graphOff");
-    
   }
   
   var canvasLength = 200; 
   var canvasWidth = 200;
-  
-  function broadcastGraph(key) {
-    html2canvas($("#appletContainer"), {
-         onrendered: function(canvas) {
-             message = canvas.toDataURL("image/png");
-             //socket.emit("send reporter", {
-              // hubnetMessageSource: "all-users", 
-            //   hubnetMessageTag: "canvas-view-"+key, 
-            //   hubnetMessage: message
-            // }); 
-             $("body").append("<img id='image1' src="+message+">");
-             
-
-             var canvas = document.getElementById('box2d-canvas');
-             var dataURL = canvas.toDataURL();
-             $("body").append("<img id = 'image2' src="+dataURL+">");  
-             
-             
-
-             var imageQuality = 0.5;
-              var miniCanvasId = "miniSafariCanvasView";
-              var dataObj = scaleCanvas($(".netlogo-canvas").width(), $(".netlogo-canvas").height());
-              var width = dataObj.width;
-              var height = dataObj.height;
-              var miniCanvas = document.getElementById(miniCanvasId);
-              var miniCtx = miniCanvas.getContext('2d');
-              miniCtx.fillStyle="#ccc";
-              miniCtx.fillRect(0,0,canvasWidth,canvasWidth);
-              //miniCtx.fillStyle="#000000";
-              //miniCtx.fillRect(0,((canvasWidth - height) / 2),width,height + 2);
-              
-              miniCtx.drawImage(document.getElementById("image1"), 0, 0, canvasWidth,canvasWidth);
-              miniCtx.drawImage(document.getElementById("image2"), 0, 0, canvasWidth,canvasWidth);
-              $("#miniSafariCanvasView").css("display","inline-block");
-              //miniCtx.drawImage(document.getElementById("image1"), 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
-              //miniCtx.drawImage(document.getElementById("image2"), 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
-              
-              message = document.getElementById(miniCanvasId).toDataURL("image/jpeg", imageQuality); 
-              console.log(message);
-              socket.emit("send reporter", {
-                hubnetMessageSource: "all-users", 
-                hubnetMessageTag: "canvas-view-"+key, 
-                hubnetMessage: message
-              }); 
-              
-
-         }
-         
-     });     
-  }
 
   function scaleCanvas(sourceWidth, sourceHeight) {
     var dataObj = {};
@@ -137,9 +86,6 @@ Graph = (function() {
     dataObj.height = height;
     return dataObj;
   }
-
-
-
     
   function triggerGraphUpdate() {
     if (procedures.gbccOnGraphUpdate != undefined) { session.run('gbcc-on-graph-update'); }
@@ -147,9 +93,9 @@ Graph = (function() {
 
   function importGraph(settings) {
     //Images.clearImage();
-    Physics.clearWorld();
-    Maps.clearMap();
-    Graph.clearGraph();
+    Physics.removePhysics();
+    Maps.removeMap();
+    Graph.removeGraph();
     world.triggerUpdate();
     resetInterface();
   }
@@ -157,28 +103,26 @@ Graph = (function() {
   function createPoint(name, location) {
     var xcor = location[0];
     var ycor = location[1];
-    
-    applet1.getAppletObject().evalCommand("a"+name+" = Point({"+xcor+", "+ycor+"})");
+    applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
   }
 
   function updatePoint(name, location) {
     var xcor = location[0];
     var ycor = location[1];
-    applet1.getAppletObject().evalCommand("a"+name+" = Point({"+xcor+", "+ycor+"})");
+    applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
   } 
   
   function deletePoint(name) {
-    applet1.getAppletObject().evalCommand("Delete("+"a"+name+")");
+    applet1.getAppletObject().evalCommand("Delete("+name+")");
   } 
   
   function getPoint(name) {
-    var xcor = applet1.getAppletObject().getXcoord("a"+name);
-    var ycor = applet1.getAppletObject().getYcoord("a"+name);
+    var xcor = applet1.getAppletObject().getXcoord(name);
+    var ycor = applet1.getAppletObject().getYcoord(name);
     return [xcor, ycor];
   } 
 
-  function clearGraph() {
-    //updateGraph("graphOff");
+  function removeGraph() {
     $(".graph-controls").css("display","none");
     $("#appletContainer").css("display","none");
     var xml = $.parseXML(applet1.getAppletObject().getXML());
@@ -250,12 +194,14 @@ Graph = (function() {
     var boundaryMaxY = boundaries.ymax;
     var pointX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
     var pointY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
-    applet1.getAppletObject().evalCommand("a"+name+" = Point({"+pointX+", "+pointY+"})");
+    applet1.getAppletObject().evalCommand(name+" = Point({"+pointX+", "+pointY+"})");
   }
   function getPointXY(name) {
-    var xcor = applet1.getAppletObject().getXcoord("a"+name);
-    var ycor = applet1.getAppletObject().getYcoord("a"+name);
+    
+    var xcor = applet1.getAppletObject().getXcoord(name);
+    var ycor = applet1.getAppletObject().getYcoord(name);
 
+    
     var pointPositionX = pointPosition.lng();
     var pointPositionY = pointPosition.lat();
     
@@ -280,13 +226,66 @@ Graph = (function() {
     var xcor = location[0];
     var ycor = location[1];
     //console.log("set point graph xy "+xcor+" "+ycor);
-    applet1.getAppletObject().evalCommand("a"+name+" = Point({"+xcor+", "+ycor+"})");
+    applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
+  }
+  
+  function patchToGraph(coords) {
+    var xcor = coords[0];
+    var ycor = coords[1];
+    var pixelX = universe.view.xPcorToCanvas(xcor);
+    var pixelY = universe.view.yPcorToCanvas(ycor);
+    pixelX -= (viewOffsetWidth * 2);
+    pixelY -= (viewOffsetHeight * 2);
+    console.log(graphWidth+" "+graphHeight);
+    var pixelPercentX = (pixelX / (graphWidth * 2));
+    var pixelPercentY = 1 - (pixelY / (graphHeight* 2));
+    var boundaries = getBounds();
+    var boundaryMinX = boundaries.xmin;
+    var boundaryMinY = boundaries.ymin;
+    var boundaryMaxX = boundaries.xmax;
+    var boundaryMaxY = boundaries.ymax;
+    var pointX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
+    var pointY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
+    return ([pointX, pointY]);
+  }
+  
+  function graphToPatch(coords) {
+    var pointPositionX = coords[0];
+    var pointPositionY = coords[1];
+    console.log(coords);
+    var boundaries = getBounds();
+    var boundaryMinX = boundaries.xmin;
+    var boundaryMinY = boundaries.ymin;
+    var boundaryMaxX = boundaries.xmax;
+    var boundaryMaxY = boundaries.ymax;
+    console.log(boundaries);
+    var pointPercentX = 1 - ((boundaryMaxX - pointPositionX) / (boundaryMaxX - boundaryMinX));
+    var pointPercentY = (boundaryMaxY - pointPositionY) / (boundaryMaxY - boundaryMinY);
+    console.log(pointPercentX+" "+pointPercentY);
+    console.log(graphWidth+" "+graphHeight);
+    var pixelX = pointPercentX * graphWidth;
+    var pixelY = pointPercentY * graphHeight;
+    console.log(pixelX+" "+pixelY);
+    pixelX += (viewOffsetWidth * 2);    
+    pixelY += (viewOffsetHeight * 2);
+    console.log(pixelX+" "+pixelY);
+    var patchXcor = universe.view.xPixToPcor(pixelX);
+    var patchYcor = universe.view.yPixToPcor(pixelY);
+    console.log(patchXcor+" "+patchYcor);
+    return ([patchXcor, patchYcor]);
   }
   
   function getPointGXY(name) {
-    var xcor = applet1.getAppletObject().getXcoord("a"+name);
-    var ycor = applet1.getAppletObject().getYcoord("a"+name);
+    var xcor = applet1.getAppletObject().getXcoord(name);
+    var ycor = applet1.getAppletObject().getYcoord(name);
     //console.log("get point graph xy "+xcor+" "+ycor);
+    return ([xcor, ycor]);
+  }
+  
+  function getPoint(name) {
+    var xcor = applet1.getAppletObject().getXcoord(name);
+    var ycor = applet1.getAppletObject().getYcoord(name);
+    console.log("get point graph xy "+xcor+" "+ycor);
     return ([xcor, ycor]);
   }
 
@@ -298,7 +297,6 @@ Graph = (function() {
     deletePoint: deletePoint,
     getPoint: getPoint,
     setupInterface: setupInterface,
-    clearGraph: clearGraph,
     getApplet: getApplet,
     evalCommand: evalCommand,
     evalCommandGetLabels: evalCommandGetLabels,
@@ -307,7 +305,9 @@ Graph = (function() {
     getPointXY: getPointXY,
     setPointGXY: setPointGXY,
     getPointGXY: getPointGXY,
-    broadcastGraph: broadcastGraph,
+    patchToGraph: patchToGraph,
+    graphToPatch: graphToPatch,
+    removeGraph: removeGraph
   };
  
 })();

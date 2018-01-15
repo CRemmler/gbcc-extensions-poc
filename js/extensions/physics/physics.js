@@ -30,9 +30,9 @@ Physics = (function() {
   
   function importPhysics(settings) {
     //Images.clearImage();
-    Physics.clearWorld();
-    Maps.clearMap();
-    Graph.clearGraph();
+    Physics.removePhysics();
+    Maps.removeMap();
+    Graph.removeGraph();
     world.triggerUpdate();
     Physicsb2.createWorld(settings);
     resetInterface();
@@ -136,7 +136,7 @@ Physics = (function() {
     }
   }
 
-  function clearWorld() {
+  function removePhysics() {
     console.log("clear physics");
     Physicsb2.stopWorld();
     $(".physics-controls").css("display","none");
@@ -146,6 +146,13 @@ Physics = (function() {
     }
   }
 
+  function patchToWorld(coords) {
+    return coords;
+  }
+  
+  function worldToPatch(coords) {
+    return coords;
+  }
 
   return {
     importPhysics: importPhysics,
@@ -154,7 +161,9 @@ Physics = (function() {
     connectToTurtle: connectToTurtle,
     getObject: getObject,
     setupInterface: setupInterface,
-    clearWorld: clearWorld
+    patchToWorld: patchToWorld,
+    worldToPatch: worldToPatch,
+    removePhysics: removePhysics
   };
  
 })();

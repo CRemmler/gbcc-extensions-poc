@@ -73,38 +73,6 @@ Maps = (function() {
 
   }
   
-  function broadcastMap(key) {
-    /*
-    html2canvas($("#mapContainer"), {
-      useCORS: true,
-         onrendered: function(canvas) {
-             message = canvas.toDataURL("image/png");
-             socket.emit("send reporter", {
-               hubnetMessageSource: "all-users", 
-               hubnetMessageTag: "canvas-view-"+key, 
-               hubnetMessage: message
-             }); 
-            //document.body.appendChild(canvas);
-         }
-     });    */
-     
-     html2canvas(document.getElementById("mapContainer"), {
-    useCORS: true
-    }).then(function (canvas) {
-      message = canvas.toDataURL("image/png");
-      socket.emit("send reporter", {
-        hubnetMessageSource: "all-users", 
-        hubnetMessageTag: "canvas-view-"+key, 
-        hubnetMessage: message
-      }); 
-     //document.body.appendChild(canvas);
-        //document.body.appendChild(canvas);
-    })
-     
-
-     
-  }
-  
   function triggerMapUpdate() {
     if (procedures.gbccOnMapUpdate != undefined) { session.run('gbcc-on-map-update'); }
   }
@@ -117,9 +85,9 @@ Maps = (function() {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
     //Images.clearImage();
-    Physics.clearWorld();
-    Maps.clearMap();
-    Graph.clearGraph();
+    Physics.removePhysics();
+    Maps.removeMap();
+    Graph.removeGraph();
     world.triggerUpdate();
     redrawMap();
     resetInterface();
@@ -186,7 +154,7 @@ Maps = (function() {
     map.removeLayer(markers[marker]);
   }
   
-  function clearMap() {
+  function removeMap() {
     $(".map-controls").css("display","none");
     $("#mapContainer").css("display","none");
     for (marker in markers) {
@@ -203,12 +171,45 @@ Maps = (function() {
     return markers;
   }
   
+  function patchToLnglat(coords) {
+    var xcor = coords[0];
+    var ycor = coords[1];
+    var pixelX = universe.view.xPcorToCanvas(xcor);
+    var pixelY = universe.view.yPcorToCanvas(ycor);
+    var pixelPercentX = 1 - (pixelX / (viewWidth * 2));
+    var pixelPercentY = (pixelY / (viewHeight * 2));
+    var boundaries = map.getBounds();
+    var boundaryMinX = boundaries._northEast.lng;
+    var boundaryMinY = boundaries._northEast.lat;
+    var boundaryMaxX = boundaries._southWest.lng;
+    var boundaryMaxY = boundaries._southWest.lat;
+    var markerX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
+    var markerY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
+    return ([markerX, markerY]);
+  }
+  
+  function lnglatToPatch(coords) {
+    var markerPositionX = coords[0];
+    var markerPositionY = coords[1];
+    var boundaries = map.getBounds();
+    var boundaryMinX = boundaries._northEast.lng;
+    var boundaryMinY = boundaries._northEast.lat;
+    var boundaryMaxX = boundaries._southWest.lng;
+    var boundaryMaxY = boundaries._southWest.lat;
+    var markerPercentX = 1 - ((boundaryMaxX - markerPositionX) / (boundaryMaxX - boundaryMinX));
+    var markerPercentY = (boundaryMaxY - markerPositionY) / (boundaryMaxY - boundaryMinY);
+    var pixelX = markerPercentX * viewWidth;
+    var pixelY = markerPercentY * viewHeight;
+    var patchXcor = universe.view.xPixToPcor(pixelX);
+    var patchYcor = universe.view.yPixToPcor(pixelY);
+    return ([patchXcor, patchYcor]);
+  }
+  
   return {
     setupInterface: setupInterface,
     importMap: importMap,
     createMarker: createMarker,
     removeMarker: removeMarker,
-    clearMap: clearMap,
     getMap: getMap,
     getMarkers, getMarkers,
     exportMap: exportMap,
@@ -218,7 +219,9 @@ Maps = (function() {
     getMarkerLngLat: getMarkerLngLat,
     setMarkerLngLat: setMarkerLngLat,
     getMapAsString: getMapAsString,
-    broadcastMap: broadcastMap
+    patchToLnglat: patchToLnglat,
+    lnglatToPatch: lnglatToPatch,
+    removeMap: removeMap
   };
  
 })();

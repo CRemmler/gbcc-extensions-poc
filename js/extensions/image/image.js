@@ -2,7 +2,7 @@
 Images = (function() {
   
   function importImage(filename) {
-    clearImage();
+    //clearImage();
     var image = new Image();
     image.onload = function() {
       $("#imageLayer").prop("src",filename);
@@ -21,11 +21,21 @@ Images = (function() {
     //Graph.clearGraph();
     world.triggerUpdate();
   }
+  function importFromUser(userId) {
+    //tag = tag.replace(" ","-");
+    //var id = "canvas-"+tag+"-"+userId;
+    console.log(userId);
+    var $img = $("#gallery-item-"+userId).find(".card img");
+
+    $("#imageLayer").prop("src",$img.prop("src"));
+    world.triggerUpdate();
+  }
 
   return {
     importImage: importImage,
     importPcolors: importPcolors,
-    clearImage: clearImage
+    clearImage: clearImage,
+    importFromUser: importFromUser
   };
  
 })();

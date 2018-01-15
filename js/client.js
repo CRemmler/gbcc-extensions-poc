@@ -30,7 +30,7 @@ jQuery(document).ready(function() {
     Physics.setupInterface();
     Maps.setupInterface();
     Graph.setupInterface();
-    $(".netlogo-canvas").attr("id","box2d-canvas"); 
+    $(".netlogo-canvas").attr("id","netlogoCanvas"); 
     allowMultipleButtonsSelected = data.gallerySettings.allowMultipleSelections; 
     allowGalleryForeverButton = data.gallerySettings.allowGalleryControls;
     $(".roomNameInput").val(data.myRoom);

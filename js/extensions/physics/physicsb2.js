@@ -44,8 +44,8 @@ Physicsb2 = (function() {
   
   function nlogotobox2d(coords) {
     // console.log("nlogotobox2d", coords);
-    BOX2D_WIDTH = parseFloat($("#box2d-canvas").css("width").replace("px",""));
-    BOX2D_HEIGHT = parseFloat($("#box2d-canvas").css("height").replace("px",""));
+    BOX2D_WIDTH = parseFloat($("#netlogoCanvas").css("width").replace("px",""));
+    BOX2D_HEIGHT = parseFloat($("#netlogoCanvas").css("height").replace("px",""));
     var nlogoLeftAbsolute = coords[0] + NLOGO_WIDTH / 2;
     var nlogoLeftPercent = nlogoLeftAbsolute / NLOGO_WIDTH;
     var box2dLeftAbsolute = BOX2D_WIDTH * nlogoLeftPercent / SCALE * 2;
@@ -58,8 +58,8 @@ Physicsb2 = (function() {
   
   function box2dtonlogo(coords) {
     // console.log("box2dtonlogo",coords);
-    BOX2D_WIDTH = parseFloat($("#box2d-canvas").css("width").replace("px",""))
-    BOX2D_HEIGHT = parseFloat($("#box2d-canvas").css("height").replace("px",""))
+    BOX2D_WIDTH = parseFloat($("#netlogoCanvas").css("width").replace("px",""))
+    BOX2D_HEIGHT = parseFloat($("#netlogoCanvas").css("height").replace("px",""))
     var xcoord = coords.x * SCALE / 2;
     var ycoord = coords.y * SCALE / 2;
     var box2dLeftAbsolute = xcoord;
@@ -94,12 +94,12 @@ Physicsb2 = (function() {
     NLOGO_WIDTH = range[0];
     NLOGO_HEIGHT = range[1];
     if (!p) {
-      if ($("#box2d-canvas").length === 0) { 
-        //$("body").append("<div style='border:2px solid red; width:400px;'><canvas class='netlogo-canvas2' id='box2d-canvas' style='width:400px; height:400px'></canvas></div>"); 
-        //$(".netlogo-canvas").attr("id","box2d-canvas"); 
-        //$("#box2d-canvas").css("border", "2px solid red");
+      if ($("#netlogoCanvas").length === 0) { 
+        //$("body").append("<div style='border:2px solid red; width:400px;'><canvas class='netlogo-canvas2' id='netlogoCanvas' style='width:400px; height:400px'></canvas></div>"); 
+        //$(".netlogo-canvas").attr("id","netlogoCanvas"); 
+        //$("#netlogoCanvas").css("border", "2px solid red");
       }
-      p = $( "#box2d-canvas");
+      p = $( "#netlogoCanvas");
       canvasPosition = p.position();
     }
     world = new b2World(
@@ -154,7 +154,7 @@ Physicsb2 = (function() {
       }
     
       window.clearInterval(physicsWorld);      
-      //p = $( "#box2d-canvas");
+      //p = $( "#netlogoCanvas");
       //canvasPosition = p.position();
       physicsWorld = window.setInterval(update, 1000 / 60);
       running = true;
@@ -383,7 +383,7 @@ Physicsb2 = (function() {
       //setup debug draw
       //console.log("setup debug draw");
       var debugDraw = new b2DebugDraw();
-       debugDraw.SetSprite(document.getElementById("box2d-canvas").getContext("2d"));
+       debugDraw.SetSprite(document.getElementById("netlogoCanvas").getContext("2d"));
        debugDraw.SetDrawScale(30.0);
        debugDraw.SetFillAlpha(0.3);
        debugDraw.SetLineThickness(1.0);
@@ -606,30 +606,30 @@ Physicsb2 = (function() {
    }
    
    function bindElements() {
-     $('#box2d-canvas').bind('mouseout', function(event) {
+     $('#netlogoCanvas').bind('mouseout', function(event) {
 
-       $('#box2d-canvas').unbind('mousemove', handleMouseMove);
+       $('#netlogoCanvas').unbind('mousemove', handleMouseMove);
        isMouseDown = false;
        mouseX = undefined;
        mouseY = undefined;
      });
-     $('#box2d-canvas').bind('mousedown', function(event) {
+     $('#netlogoCanvas').bind('mousedown', function(event) {
 
        isMouseDown = true;
-       $('#box2d-canvas').bind('mousemove', handleMouseMove);
+       $('#netlogoCanvas').bind('mousemove', handleMouseMove);
      });
-     $('#box2d-canvas').bind('touchstart', function(event) {
+     $('#netlogoCanvas').bind('touchstart', function(event) {
        isMouseDown = true;
-       $('#box2d-canvas').bind('touchmove', handleTouchMove);
+       $('#netlogoCanvas').bind('touchmove', handleTouchMove);
      });
-     $('#box2d-canvas').bind('mouseup', function(event) {
-       $('#box2d-canvas').unbind('mousemove', handleMouseMove);
+     $('#netlogoCanvas').bind('mouseup', function(event) {
+       $('#netlogoCanvas').unbind('mousemove', handleMouseMove);
        isMouseDown = false;
        mouseX = undefined;
        mouseY = undefined;
      });
-    $('#box2d-canvas').bind('touchend', function(event) {
-       $('#box2d-canvas').unbind('touchmove', handleTouchMove);
+    $('#netlogoCanvas').bind('touchend', function(event) {
+       $('#netlogoCanvas').unbind('touchmove', handleTouchMove);
        isMouseDown = false;
        mouseX = undefined;
        mouseY = undefined;

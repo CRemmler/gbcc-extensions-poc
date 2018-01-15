@@ -371,17 +371,13 @@ Gallery = (function() {
 
   function broadcastToGallery(key, value) {
     if (key === "view") {
-      drawView(value);
+      drawView(value.replace(" ","-"));
     } else if (key === "plot") {
       drawPlot(value);
     } else if (key === "text") {
       drawText(value);
     } else if (key === "clear") {
       drawClear();
-    } else if (key === "graph") {
-      drawGraph();
-    } else if (key === "map") {
-      drawMap();
     }
   }
   
@@ -419,24 +415,66 @@ Gallery = (function() {
   }
   
   function drawView(key) {
-    var miniCanvasId = is_safari ? "miniSafariCanvasView" : "miniCanvasView";
-    var dataObj = scaleCanvas($(".netlogo-canvas").width(), $(".netlogo-canvas").height());
-    var width = dataObj.width;
-    var height = dataObj.height;
-    var miniCanvas = document.getElementById(miniCanvasId);
-    var miniCtx = miniCanvas.getContext('2d');
-    miniCtx.fillStyle="#ffffff";
-    miniCtx.fillRect(0,0,canvasWidth,canvasWidth);
-    miniCtx.fillStyle="#000000";
-    miniCtx.fillRect(0,((canvasWidth - height) / 2),width,height + 2);
-    miniCtx.drawImage(document.getElementsByClassName("netlogo-canvas")[0], 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
-    message = document.getElementById(miniCanvasId).toDataURL("image/jpeg", imageQuality); 
-    console.log(message);
-    socket.emit("send reporter", {
-      hubnetMessageSource: "all-users", 
-      hubnetMessageTag: "canvas-view-"+key, 
-      hubnetMessage: message
-    }); 
+    var mapVisible = ($("#mapContainer").css("display") === "none") ? false : true;
+    var graphVisible = ($("#appletContainer").css("display") === "none") ? false : true;
+    var mapControlsVisible = ($(".map-controls").css("display") === "none") ? false : true;
+    var graphControlsVisible = ($(".graph-controls").css("display") === "none") ? false : true;
+    var mapOff = ($("#mapOff").hasClass("selected")) ? true : false;
+    var graphOff = ($("#graphOff").hasClass("selected")) ? true : false;
+    var drawMapLayer = (mapVisible && mapControlsVisible && true) ? true : false;
+    var drawGraphLayer = (graphVisible && graphControlsVisible && true) ? true : false;
+    var drawNetLogoCanvas = ((mapVisible && mapOff && true) || (graphVisible && graphOff && true) || (mapVisible === graphVisible)) ? true : false;
+    if (drawMapLayer || drawGraphLayer) {
+      var container = drawMapLayer ? "mapContainer" : "appletContainer";
+      html2canvas(document.getElementById(container), {
+        useCORS: true
+        }).then(function (canvas) {
+          var miniCanvasId = "miniSafariCanvasView";
+          var dataObj = scaleCanvas($(".netlogo-canvas").width(), $(".netlogo-canvas").height());
+          var width = dataObj.width;
+          var height = dataObj.height;
+          var miniCanvas = document.getElementById(miniCanvasId);
+          var miniCtx = miniCanvas.getContext('2d');
+          miniCtx.fillStyle="#ffffff";
+          miniCtx.fillRect(0,0,canvasWidth,canvasWidth);
+          miniCtx.fillStyle="#000000";
+          miniCtx.fillRect(0,((canvasWidth - height) / 2),width,height + 2);
+          miniCtx.drawImage(canvas, 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
+          
+          if (drawNetLogoCanvas) {
+            miniCtx.drawImage(document.getElementsByClassName("netlogo-canvas")[0], 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
+          }
+          message = document.getElementById(miniCanvasId).toDataURL("image/jpeg", imageQuality); 
+          console.log(message);
+          socket.emit("send reporter", {
+            hubnetMessageSource: "all-users", 
+            hubnetMessageTag: "canvas-view-"+key, 
+            hubnetMessage: message
+          }); 
+        });  
+    } else {    
+      //var miniCanvasId = is_safari ? "miniSafariCanvasView" : "miniCanvasView";
+      var miniCanvasId = "miniSafariCanvasView";
+      var dataObj = scaleCanvas($(".netlogo-canvas").width(), $(".netlogo-canvas").height());
+      var width = dataObj.width;
+      var height = dataObj.height;
+      var miniCanvas = document.getElementById(miniCanvasId);
+      var miniCtx = miniCanvas.getContext('2d');
+      miniCtx.fillStyle="#ffffff";
+      miniCtx.fillRect(0,0,canvasWidth,canvasWidth);
+      miniCtx.fillStyle="#000000";
+      miniCtx.fillRect(0,((canvasWidth - height) / 2),width,height + 2);
+      miniCtx.drawImage(document.getElementsByClassName("netlogo-canvas")[0], 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
+      message = document.getElementById(miniCanvasId).toDataURL("image/jpeg", imageQuality); 
+      console.log(message);
+      
+      //$("#miniSafariCanvasView").css("display","inline-block");
+      socket.emit("send reporter", {
+        hubnetMessageSource: "all-users", 
+        hubnetMessageTag: "canvas-view-"+key, 
+        hubnetMessage: message
+      }); 
+    }
   }
   
   function drawMap(key) {
