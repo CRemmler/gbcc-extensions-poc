@@ -236,7 +236,6 @@ Graph = (function() {
     var pixelY = universe.view.yPcorToCanvas(ycor);
     pixelX -= (viewOffsetWidth * 2);
     pixelY -= (viewOffsetHeight * 2);
-    console.log(graphWidth+" "+graphHeight);
     var pixelPercentX = (pixelX / (graphWidth * 2));
     var pixelPercentY = 1 - (pixelY / (graphHeight* 2));
     var boundaries = getBounds();
@@ -252,26 +251,19 @@ Graph = (function() {
   function graphToPatch(coords) {
     var pointPositionX = coords[0];
     var pointPositionY = coords[1];
-    console.log(coords);
     var boundaries = getBounds();
     var boundaryMinX = boundaries.xmin;
     var boundaryMinY = boundaries.ymin;
     var boundaryMaxX = boundaries.xmax;
     var boundaryMaxY = boundaries.ymax;
-    console.log(boundaries);
     var pointPercentX = 1 - ((boundaryMaxX - pointPositionX) / (boundaryMaxX - boundaryMinX));
     var pointPercentY = (boundaryMaxY - pointPositionY) / (boundaryMaxY - boundaryMinY);
-    console.log(pointPercentX+" "+pointPercentY);
-    console.log(graphWidth+" "+graphHeight);
     var pixelX = pointPercentX * graphWidth;
     var pixelY = pointPercentY * graphHeight;
-    console.log(pixelX+" "+pixelY);
-    pixelX += (viewOffsetWidth * 2);    
-    pixelY += (viewOffsetHeight * 2);
-    console.log(pixelX+" "+pixelY);
+    pixelX += (viewOffsetWidth);    
+    pixelY += (viewOffsetHeight);
     var patchXcor = universe.view.xPixToPcor(pixelX);
     var patchYcor = universe.view.yPixToPcor(pixelY);
-    console.log(patchXcor+" "+patchYcor);
     return ([patchXcor, patchYcor]);
   }
   
@@ -285,7 +277,6 @@ Graph = (function() {
   function getPoint(name) {
     var xcor = applet1.getAppletObject().getXcoord(name);
     var ycor = applet1.getAppletObject().getYcoord(name);
-    console.log("get point graph xy "+xcor+" "+ycor);
     return ([xcor, ycor]);
   }
 
