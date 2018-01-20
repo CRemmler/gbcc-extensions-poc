@@ -97,10 +97,43 @@ Maps = (function() {
 
   }
   
-  function createMarker(name, settings) {
-    var marker = L.marker([0, 0]).addTo(map);
+  function createMarker(name, location) {
+    var lng = location[0];
+    var lat = location[1];
+    console.log("create marker",name);
+    var newLatLng = new L.LatLng(lat, lng);
+    var marker = L.marker(newLatLng).addTo(map);
     markers[name] = marker;
   }
+  
+  function updateMarker(name, location) {
+    console.log("update marker",name,location);
+    if (markers[name]) {
+      console.log("marker does exist");
+      var lng = location[0];
+      var lat = location[1];
+      var newLatLng = new L.LatLng(lat, lng);
+      markers[name].setLatLng(newLatLng); 
+    }
+  }
+
+  function getMarker(name) {
+    console.log("get marker");
+    console.log(name);
+    if (markers[name]) {
+      console.log("does exist");
+      var latLng = markers[name].getLatLng();
+      var lng = latLng.lng;
+      var lat = latLng.lat;
+      console.log(lng,lat);
+      return [lng, lat];
+    } else {
+      console.log("does not exist");
+      return [ "does not exist" ]
+    }
+  }
+  
+  /*
 
   function setMarkerXY(name, settings) {
     var xcor = settings[0];
@@ -149,7 +182,7 @@ Maps = (function() {
     var markerPosition = markers[name].getLatLng();
     return ([markerPosition.lng, markerPosition.lat]);
   }
-  
+  */
   function removeMarker(name) {
     map.removeLayer(markers[marker]);
   }
@@ -193,16 +226,20 @@ Maps = (function() {
     var markerPositionX = coords[0];
     var markerPositionY = coords[1];
     var boundaries = map.getBounds();
-    var boundaryMinX = boundaries._northEast.lng;
-    var boundaryMinY = boundaries._northEast.lat;
-    var boundaryMaxX = boundaries._southWest.lng;
-    var boundaryMaxY = boundaries._southWest.lat;
+    var boundaryMaxX = boundaries._northEast.lng;
+    var boundaryMaxY = boundaries._northEast.lat;
+    var boundaryMinX = boundaries._southWest.lng;
+    var boundaryMinY = boundaries._southWest.lat;
+    console.log(coords);
+    console.log(boundaries);
     if ( markerPositionX < boundaryMinX 
       || markerPositionX > boundaryMaxX
       || markerPositionY < boundaryMinY
       || markerPositionY > boundaryMaxY) {
+        console.log("out of bounds");
       return (["out of bounds"]);
     }
+    console.log("in bounds");
     var markerPercentX = 1 - ((boundaryMaxX - markerPositionX) / (boundaryMaxX - boundaryMinX));
     var markerPercentY = (boundaryMaxY - markerPositionY) / (boundaryMaxY - boundaryMinY);
     var pixelX = markerPercentX * viewWidth;
@@ -217,18 +254,20 @@ Maps = (function() {
     importMap: importMap,
     createMarker: createMarker,
     removeMarker: removeMarker,
+    updateMarker: updateMarker,
     getMap: getMap,
     getMarkers, getMarkers,
     exportMap: exportMap,
     redrawMap: redrawMap,
-    getMarkerXY: getMarkerXY,
-    setMarkerXY: setMarkerXY,
-    getMarkerLngLat: getMarkerLngLat,
-    setMarkerLngLat: setMarkerLngLat,
+    //getMarkerXY: getMarkerXY,
+    //setMarkerXY: setMarkerXY,
+    //getMarkerLngLat: getMarkerLngLat,
+    //setMarkerLngLat: setMarkerLngLat,
     getMapAsString: getMapAsString,
     patchToLnglat: patchToLnglat,
     lnglatToPatch: lnglatToPatch,
-    removeMap: removeMap
+    removeMap: removeMap,
+    getMarker: getMarker
   };
  
 })();

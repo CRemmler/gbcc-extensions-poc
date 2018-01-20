@@ -119,9 +119,13 @@ Graph = (function() {
   } 
   
   function getPoint(name) {
-    var xcor = applet1.getAppletObject().getXcoord(name);
-    var ycor = applet1.getAppletObject().getYcoord(name);
-    return [xcor, ycor];
+    if (applet1.getAppletObject().exists(name)) {
+      var xcor = applet1.getAppletObject().getXcoord(name);
+      var ycor = applet1.getAppletObject().getYcoord(name);
+      return [xcor, ycor];
+    } else {
+      return [ "does not exist" ]
+    }
   } 
 
   function removeGraph() {
@@ -178,7 +182,7 @@ Graph = (function() {
   function evalCommandCAS(cmdString) {
     return Graph.getApplet().getAppletObject().evalCommandCAS(cmdString);
   }
-  
+  /*
   function setPointXY(name, settings) {
     var xcor = settings[0];
     var ycor = settings[1];
@@ -228,7 +232,7 @@ Graph = (function() {
     var ycor = location[1];
     //console.log("set point graph xy "+xcor+" "+ycor);
     applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
-  }
+  }*/
   
   function patchToGraph(coords) {
     var xcor = coords[0];
@@ -280,19 +284,13 @@ Graph = (function() {
     var patchYcor = universe.view.yPixToPcor(pixelY);
     return ([patchXcor, patchYcor]);
   }
-  
+  /*
   function getPointGXY(name) {
     var xcor = applet1.getAppletObject().getXcoord(name);
     var ycor = applet1.getAppletObject().getYcoord(name);
     //console.log("get point graph xy "+xcor+" "+ycor);
     return ([xcor, ycor]);
-  }
-  
-  function getPoint(name) {
-    var xcor = applet1.getAppletObject().getXcoord(name);
-    var ycor = applet1.getAppletObject().getYcoord(name);
-    return ([xcor, ycor]);
-  }
+  }*/
 
   return {
     
@@ -306,10 +304,10 @@ Graph = (function() {
     evalCommand: evalCommand,
     evalCommandGetLabels: evalCommandGetLabels,
     evalCommandCAS: evalCommandCAS,
-    setPointXY: setPointXY,
-    getPointXY: getPointXY,
-    setPointGXY: setPointGXY,
-    getPointGXY: getPointGXY,
+    //setPointXY: setPointXY,
+    //getPointXY: getPointXY,
+    //setPointGXY: setPointGXY,
+    //getPointGXY: getPointGXY,
     patchToGraph: patchToGraph,
     graphToPatch: graphToPatch,
     removeGraph: removeGraph
