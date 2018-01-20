@@ -160,6 +160,7 @@ Maps = (function() {
     for (marker in markers) {
       removeMarker(name);
     }
+    updateMap("mapOn");
   }
   
   // for testing 
@@ -196,6 +197,12 @@ Maps = (function() {
     var boundaryMinY = boundaries._northEast.lat;
     var boundaryMaxX = boundaries._southWest.lng;
     var boundaryMaxY = boundaries._southWest.lat;
+    if ( markerPositionX < boundaryMinX 
+      || markerPositionX > boundaryMaxX
+      || markerPositionY < boundaryMinY
+      || markerPositionY > boundaryMaxY) {
+      return (["out of bounds"]);
+    }
     var markerPercentX = 1 - ((boundaryMaxX - markerPositionX) / (boundaryMaxX - boundaryMinX));
     var markerPercentY = (boundaryMaxY - markerPositionY) / (boundaryMaxY - boundaryMinY);
     var pixelX = markerPercentX * viewWidth;

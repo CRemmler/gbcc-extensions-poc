@@ -107,9 +107,11 @@ Graph = (function() {
   }
 
   function updatePoint(name, location) {
-    var xcor = location[0];
-    var ycor = location[1];
-    applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
+    if (applet1.getAppletObject().exists(name)) {
+      var xcor = location[0];
+      var ycor = location[1];
+      applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
+    }
   } 
   
   function deletePoint(name) {
@@ -129,7 +131,6 @@ Graph = (function() {
     var $xml = $(xml);
     var $construction = $xml.find('construction');
     $construction.find('element').each(function(){
-      console.log($(this).attr('label'));
       Graph.getApplet().getAppletObject().evalCommand("Delete("+$(this).attr('label')+")");
     });
     updateGraph("graphOn");
@@ -248,6 +249,11 @@ Graph = (function() {
     return ([pointX, pointY]);
   }
   
+  function outOfBounds(coords) {
+    
+    return (["out of bounds", [5, 5], 180]);
+  }
+  
   function graphToPatch(coords) {
     var pointPositionX = coords[0];
     var pointPositionY = coords[1];
@@ -256,6 +262,14 @@ Graph = (function() {
     var boundaryMinY = boundaries.ymin;
     var boundaryMaxX = boundaries.xmax;
     var boundaryMaxY = boundaries.ymax;
+    if ( pointPositionX < boundaryMinX 
+      || pointPositionX > boundaryMaxX
+      || pointPositionY < boundaryMinY
+      || pointPositionY > boundaryMaxY) {
+      //return outOfBounds(coords);
+      return (["out of bounds"]);
+    }
+    //console.log("in bounds");
     var pointPercentX = 1 - ((boundaryMaxX - pointPositionX) / (boundaryMaxX - boundaryMinX));
     var pointPercentY = (boundaryMaxY - pointPositionY) / (boundaryMaxY - boundaryMinY);
     var pixelX = pointPercentX * graphWidth;
