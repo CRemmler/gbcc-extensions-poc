@@ -134,7 +134,8 @@ Physicsb2 = (function() {
         {
           b = bodyObj[id];
           if (b.GetType() == b2Body.b2_dynamicBody || b.GetType() === b2Body.b2_kinematicBody) {
-            if (universe.model.turtles[id].xcor != undefined
+            if (universe.model.turtles[id] != undefined
+               && universe.model.turtles[id].xcor != undefined
                && universe.model.turtles[id].ycor != undefined 
                && universe.model.turtles[id].heading != undefined) 
             {
@@ -202,7 +203,7 @@ Physicsb2 = (function() {
   }
   
   function updateBodyId(name, who) {
-    //console.log("updateBodyId " + name + " "+who);
+    console.log("updateBodyId between " + name + " "+who);
     bodyObj[who] = bodyObj[name];
     //var tempBody = bodyObj[name];
     delete bodyObj[name];
@@ -643,6 +644,10 @@ Physicsb2 = (function() {
   function getBodyObj(id) {
     return bodyObj[id];
   }
+  
+  function getAllBodies() {
+    return bodyObj;
+  }
 
 
   return {
@@ -671,7 +676,8 @@ Physicsb2 = (function() {
     applyLinearImpulse: applyLinearImpulse,
     applyTorque: applyTorque,
     applyAngularImpulse: applyAngularImpulse,
-    updateBodyId: updateBodyId
+    updateBodyId: updateBodyId,
+    getAllBodies: getAllBodies
   };
 
 })();

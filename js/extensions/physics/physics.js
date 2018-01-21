@@ -64,13 +64,25 @@ Physics = (function() {
       default:
         break;
     }
+    // static circle 
+    // dynamic edge 
+    // static triangle 
+    // dynamic triangle 
+    // target 
+    // joint 
     Physicsb2.redrawWorld();
   }
   
   function connectToTurtle(name, who) {
-    parentId = name+"parent";
+    var parentId = name+"parent";
     //console.log("connect to turtle "+parentId+" to " + who);
     Physicsb2.updateBodyId(parentId, who);
+  }
+  
+  function disconnectFromTurtle(name, who) {
+    var parentId = name+"parent";
+    //console.log("connect to turtle "+parentId+" to " + who);
+    Physicsb2.updateBodyId(who, parentId);
   }
   
   function removeObject(name) {
@@ -114,7 +126,7 @@ Physics = (function() {
       $(".netlogo-view-container").css("z-index","1");
       //drawPatches = false;
     }
-    world.triggerUpdate();
+    //world.triggerUpdate();
   }
   
   function startWorld() {
@@ -159,6 +171,7 @@ Physics = (function() {
     createObject: createObject,
     removeObject: removeObject,
     connectToTurtle: connectToTurtle,
+    disconnectFromTurtle: disconnectFromTurtle,
     getObject: getObject,
     setupInterface: setupInterface,
     patchToWorld: patchToWorld,
