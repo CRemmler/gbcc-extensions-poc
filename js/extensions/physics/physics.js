@@ -28,7 +28,9 @@ Physics = (function() {
     updatePhysics("physicsOff");
   }
   
-  function importPhysics(settings) {
+  function importPhysics(data) {
+    var settings = data[0];
+    var objects = data[1];
     //Images.clearImage();
     Physics.removePhysics();
     Maps.removeMap();
@@ -73,26 +75,30 @@ Physics = (function() {
     Physicsb2.redrawWorld();
   }
   
-  function connectToTurtle(name, who) {
+  function connectToObject(who, name) {
     var parentId = name+"parent";
     //console.log("connect to turtle "+parentId+" to " + who);
     Physicsb2.updateBodyId(parentId, who);
   }
   
-  function disconnectFromTurtle(name, who) {
+  function disconnectFromObject(who, name) {
     var parentId = name+"parent";
     //console.log("connect to turtle "+parentId+" to " + who);
     Physicsb2.updateBodyId(who, parentId);
   }
   
   function removeObject(name) {
-    
+    return ([]);
   }
   
   function getObject(name) {
-    
+    return ([]);
   }
   
+  function getObjects() {
+    console.log("get objects");
+    return []  
+  }
 
   function setupEventListeners() {
     $(".physics-controls").on("click", "#physicsOn", function() {
@@ -149,7 +155,6 @@ Physics = (function() {
   }
 
   function removePhysics() {
-    console.log("clear physics");
     Physicsb2.stopWorld();
     $(".physics-controls").css("display","none");
     if ($("#physicsPlay").hasClass("inactive")) { 
@@ -170,9 +175,10 @@ Physics = (function() {
     importPhysics: importPhysics,
     createObject: createObject,
     removeObject: removeObject,
-    connectToTurtle: connectToTurtle,
-    disconnectFromTurtle: disconnectFromTurtle,
+    connectToObject: connectToObject,
+    disconnectFromObject: disconnectFromObject,
     getObject: getObject,
+    getObjects: getObjects,
     setupInterface: setupInterface,
     patchToWorld: patchToWorld,
     worldToPatch: worldToPatch,

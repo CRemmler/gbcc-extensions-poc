@@ -91,12 +91,19 @@ Graph = (function() {
     if (procedures.gbccOnGraphUpdate != undefined) { session.run('gbcc-on-graph-update'); }
   }
 
-  function importGraph(settings) {
+  function importGraph(data) {
     //Images.clearImage();
+    var settings = data[0];
+    var elements = data[1];
+    console.log("import graph");
     Physics.removePhysics();
     Maps.removeMap();
     Graph.removeGraph();
     world.triggerUpdate();
+    if (elements != "") { 
+      console.log(elements);
+      applet1.getAppletObject().setXML(elements); 
+    }
     resetInterface();
   }
   
@@ -127,6 +134,30 @@ Graph = (function() {
       return [ "does not exist" ]
     }
   } 
+  
+  function getPoints() {
+    var xml = $.parseXML(applet1.getAppletObject().getXML());
+    var $xml = $(xml);
+    var $elements = $xml.find('construction');
+    var $element, elementType, label;
+    var pointsList = [];
+    var point, coords;
+    $($.parseXML(applet1.getAppletObject().getXML())).find("construction element").each(function() {
+      if ($(this).attr("type") === "point") {
+        label = $(this).attr("label");
+        coords = getPoint(label);
+        if (coords != "does not exist") {
+          point = [label, coords];
+          pointsList.push(point);
+        }
+      }
+    });
+    return pointsList;
+  }
+  
+  function getElements() {
+    return applet1.getAppletObject().getXML()
+  }
 
   function removeGraph() {
     $(".graph-controls").css("display","none");
@@ -299,6 +330,8 @@ Graph = (function() {
     updatePoint: updatePoint,
     deletePoint: deletePoint,
     getPoint: getPoint,
+    getPoints: getPoints,
+    getElements: getElements,
     setupInterface: setupInterface,
     getApplet: getApplet,
     evalCommand: evalCommand,

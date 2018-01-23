@@ -77,7 +77,9 @@ Maps = (function() {
     if (procedures.gbccOnMapUpdate != undefined) { session.run('gbcc-on-map-update'); }
   }
 
-  function importMap(settings) {
+  function importMap(data) {
+    var settings = data[0];
+    var allMarkers = data[1];
     zoom = settings[0];
     location = settings[1];
     map.setView(location, zoom);
@@ -89,6 +91,11 @@ Maps = (function() {
     Maps.removeMap();
     Graph.removeGraph();
     world.triggerUpdate();
+    if (allMarkers != "") { 
+      for (var i=0; i<allMarkers.length; i++) {
+        createMarker(allMarkers[i][0], allMarkers[i][1]);
+      }
+    }
     redrawMap();
     resetInterface();
   }
@@ -100,16 +107,13 @@ Maps = (function() {
   function createMarker(name, location) {
     var lng = location[0];
     var lat = location[1];
-    console.log("create marker",name);
     var newLatLng = new L.LatLng(lat, lng);
     var marker = L.marker(newLatLng).addTo(map);
     markers[name] = marker;
   }
   
   function updateMarker(name, location) {
-    console.log("update marker",name,location);
     if (markers[name]) {
-      console.log("marker does exist");
       var lng = location[0];
       var lat = location[1];
       var newLatLng = new L.LatLng(lat, lng);
@@ -118,19 +122,34 @@ Maps = (function() {
   }
 
   function getMarker(name) {
-    console.log("get marker");
-    console.log(name);
     if (markers[name]) {
-      console.log("does exist");
       var latLng = markers[name].getLatLng();
       var lng = latLng.lng;
       var lat = latLng.lat;
-      console.log(lng,lat);
       return [lng, lat];
     } else {
-      console.log("does not exist");
       return [ "does not exist" ]
     }
+  }
+  
+  
+  function getMarkers() {
+    var markerList = [];
+    var mark, latLng, lng, lat;
+    for (marker in markers) {
+      mark = [];
+      mark.push(marker);
+      latLng = markers[marker].getLatLng();
+      lng = latLng.lng;
+      lat = latLng.lat;
+      mark.push([lng, lat]);
+      markerList.push(mark);
+    }
+    return markerList;
+  }
+  
+  function getMarkerList() {
+    return markers;
   }
   
   /*
@@ -183,26 +202,23 @@ Maps = (function() {
     return ([markerPosition.lng, markerPosition.lat]);
   }
   */
-  function removeMarker(name) {
-    map.removeLayer(markers[marker]);
+  function deleteMarker(name) {
+    map.removeLayer(markers[name]);
   }
   
   function removeMap() {
     $(".map-controls").css("display","none");
     $("#mapContainer").css("display","none");
     for (marker in markers) {
-      removeMarker(name);
+      deleteMarker(marker);
     }
+    markers = {};
     updateMap("mapOn");
   }
   
   // for testing 
   function getMap() {
     return map;
-  }
-  
-  function getMarkers() {
-    return markers;
   }
   
   function patchToLnglat(coords) {
@@ -230,16 +246,12 @@ Maps = (function() {
     var boundaryMaxY = boundaries._northEast.lat;
     var boundaryMinX = boundaries._southWest.lng;
     var boundaryMinY = boundaries._southWest.lat;
-    console.log(coords);
-    console.log(boundaries);
     if ( markerPositionX < boundaryMinX 
       || markerPositionX > boundaryMaxX
       || markerPositionY < boundaryMinY
       || markerPositionY > boundaryMaxY) {
-        console.log("out of bounds");
       return (["out of bounds"]);
     }
-    console.log("in bounds");
     var markerPercentX = 1 - ((boundaryMaxX - markerPositionX) / (boundaryMaxX - boundaryMinX));
     var markerPercentY = (boundaryMaxY - markerPositionY) / (boundaryMaxY - boundaryMinY);
     var pixelX = markerPercentX * viewWidth;
@@ -253,7 +265,7 @@ Maps = (function() {
     setupInterface: setupInterface,
     importMap: importMap,
     createMarker: createMarker,
-    removeMarker: removeMarker,
+    deleteMarker: deleteMarker,
     updateMarker: updateMarker,
     getMap: getMap,
     getMarkers, getMarkers,
@@ -267,7 +279,8 @@ Maps = (function() {
     patchToLnglat: patchToLnglat,
     lnglatToPatch: lnglatToPatch,
     removeMap: removeMap,
-    getMarker: getMarker
+    getMarker: getMarker,
+    getMarkerList: getMarkerList
   };
  
 })();
