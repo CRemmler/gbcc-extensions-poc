@@ -6,15 +6,19 @@ Physicsb2 = (function() {
   var world;
   var physicsWorld;
   var running = false;
-  
+  var elementsBound = false;
+  var helperPoints = [];
    // get ready to capture mouse events
   var isMouseDown = false;
   var mouseX = undefined;
   var mouseY = undefined;
   var p, canvasPosition;
+  p = undefined;
   var selectedBody;
   var mouseJoint = null;
   var mousePVec;
+  var pointDragged = null;
+  var bodyDragged = null;
   
   var   b2Vec2 = Box2D.Common.Math.b2Vec2
      ,	b2BodyDef = Box2D.Dynamics.b2BodyDef
@@ -78,13 +82,19 @@ Physicsb2 = (function() {
     return angle * 2 * Math.PI / 360;
   }
 
+  $( window ).resize(function() {
+    p = $( "#netlogoCanvas").parent();//$( "#netlogoCanvas";
+    canvasPosition = p.offset();
+    console.log("reset canvas position " + canvasPosition);
+  });
+
   //Physics.createWorld([10, [21, 21] ])
   function createWorld(m) {
     
     //console.log(m);
     bodyObj = {};
     turtleObj = {};
-    //bindElements();
+    bindElements();
     var gravity = m[0]
     var range = m[1];
     wrap = m[2];
@@ -93,15 +103,22 @@ Physicsb2 = (function() {
     
     NLOGO_WIDTH = range[0];
     NLOGO_HEIGHT = range[1];
-    if (!p) {
+    console.log("is there p",p);
+    //if (!p) {
+      console.log("there is p");
       if ($("#netlogoCanvas").length === 0) { 
+        console.log("there is a .netlogoCanvas");
         //$("body").append("<div style='border:2px solid red; width:400px;'><canvas class='netlogo-canvas2' id='netlogoCanvas' style='width:400px; height:400px'></canvas></div>"); 
         //$(".netlogo-canvas").attr("id","netlogoCanvas"); 
         //$("#netlogoCanvas").css("border", "2px solid red");
       }
-      p = $( "#netlogoCanvas");
-      canvasPosition = p.position();
-    }
+      p = $( "#netlogoCanvas").parent();//$( "#netlogoCanvas";
+      canvasPosition = p.offset();
+      console.log("set canvas position " + canvasPosition);
+      //canvasPosition.left = canvasPosition.left + 20;
+      //canvasPosition.top = canvasPosition.top + 40;
+
+    //}
     world = new b2World(
           new b2Vec2(gravity[0], gravity[1])    //gravity
        ,  true                 //allow sleep
@@ -168,11 +185,18 @@ Physicsb2 = (function() {
   }
         
   function addBody(m) {
-    var id = m[0];
+    
+    var id = m.parentId;
+    var behavior = m.behavior;
+    var bodyA = m.parentId;
+    var nlogoCoords = m.bodyCoords;
+    var angle = m.heading;
+    
+    /*var id = m[0];
     var behavior = m[1];
     var bodyA = m[2]
     var nlogoCoords = m[3];
-    var angle = m[4];
+    var angle = m[4];*/
     
     var box2dCoords = nlogotobox2d(nlogoCoords);
     //console.log("add body "+id+" "+behavior+" "+bodyA+" "+nlogoCoords+" "+box2dCoords+" "+angle);
@@ -222,17 +246,28 @@ Physicsb2 = (function() {
   
   
   function addFixtureToBody(m) {
+    var id = m.name;
+    var bodyA = m.parentId;
+    var nlogoCoords = m.bodyCoords;
+    var box2dCoords = nlogotobox2d(nlogoCoords);
+    var nlogoFixtureCoords = m.fixtureCoords;
+    var shape = m.shape;
+    var settings = m.settings;
+    
+    /*
     var id = m[0];
     var bodyA = m[1];
     var nlogoCoords = m[2];
     var box2dCoords = nlogotobox2d(nlogoCoords);
     var nlogoFixtureCoords = m[3];
+    var shape = m[4];
+    var settings = m[5];*/
+    
     var box2dFixtureCoords = [];
     for (let coord of nlogoFixtureCoords) {
       box2dFixtureCoords.push(nlogotobox2d(coord));  
     }
-    var shape = m[4];
-    var settings = m[5];
+
     var fixDef = new b2FixtureDef;
     fixDef.density = settings[0];
     fixDef.friction = settings[1];
@@ -503,6 +538,7 @@ Physicsb2 = (function() {
         }
       }
     }
+    //drawHelperPoints();
   }
 
   function updateOnce() {
@@ -531,7 +567,7 @@ Physicsb2 = (function() {
 
       // mouse drags images
       
-      /*
+      
       if(isMouseDown && (!mouseJoint)) {
         var body = getBodyAtMouse();
         if(body) {
@@ -564,7 +600,7 @@ Physicsb2 = (function() {
           world.DestroyJoint(mouseJoint);
           mouseJoint = null;
         }
-      }*/
+      }
     }
   };
      
@@ -573,16 +609,60 @@ Physicsb2 = (function() {
   }
 
    var handleMouseMove = function(e) {
-     mouseX = (e.clientX - canvasPosition.left) / SCALE;
-     mouseY = (e.clientY - canvasPosition.top) / SCALE;
+       var vertices;
+       var tempHelperPoint, newVertices;
+       var center;
+       mouseX = (e.clientX - canvasPosition.left) / SCALE * 2;
+       mouseY = (e.clientY - canvasPosition.top) / SCALE * 2;
+       //var mode = Physics.getDrawButtonMode();
+       if (pointDragged != null) {// && mode === "drag") {
+         //console.log("point dragged",pointDragged);
+         if (pointDragged.shape === "b2CircleShape") {
+           helperPoints[0].coords.x = mouseX;
+           helperPoints[0].coords.y = mouseY;
+           center = Physicsb2.getBodyObj(pointDragged.bodyId).GetPosition();
+           //var distance = (findDistance(box2dFixtureCoords[0], box2dFixtureCoords[1]));
+           //console.log(distance(center));
+           Physicsb2.getBodyObj(pointDragged.bodyId).GetFixtureList().GetShape().SetRadius(distance(center));
+           Physicsb2.getBodyObj(pointDragged.bodyId).SetAngle(0);
+           helperPoints[0].coords.x = mouseX;
+           helperPoints[0].coords.y = mouseY;
+           universe.repaint();
+           world.DrawDebugData(); 
+           drawHelperPoints();
+         } else if (pointDragged.shape === "b2PolygonShape") {
+           helperPoints[pointDragged.fixtureIndex].coords.x = mouseX;
+           helperPoints[pointDragged.fixtureIndex].coords.y = mouseY;
+           newVertices = [];
+           center = Physicsb2.getBodyObj(pointDragged.bodyId).GetPosition();
+           for (var p=0; p<helperPoints.length; p++) {
+             newVertices.push(new b2Vec2(helperPoints[p].coords.x - center.x, helperPoints[p].coords.y - center.y)); 
+           }
+           Physicsb2.getBodyObj(pointDragged.bodyId).GetFixtureList().GetShape().SetAsArray(newVertices, newVertices.length);
+           Physicsb2.getBodyObj(pointDragged.bodyId).SetAngle(0);
+           helperPoints[pointDragged.fixtureIndex].coords.x = mouseX;
+           helperPoints[pointDragged.fixtureIndex].coords.y = mouseY;
+           universe.repaint();
+           world.DrawDebugData(); 
+           drawHelperPoints();
+         }
+       } else if (bodyDragged != null) {
+           var center = {x: bodyDragged.offset.x + mouseX, y: bodyDragged.offset.y + mouseY };
+           bodyDragged.body.SetPosition(center);
+           universe.repaint();
+           world.DrawDebugData(); 
+           //if (bodyDragged.shape === "b2PolygonShape") {
+           createHelperPoints(bodyDragged.shape, bodyDragged.body);
+           drawHelperPoints();
+       }
+       
    };
    
    var handleTouchMove = function(e) {
      e.preventDefault();
      var orig = e.originalEvent;
-     mouseX = (orig.touches[0].pageX - canvasPosition.left) / SCALE;
-     mouseY = (orig.touches[0].pageY - canvasPosition.left) / SCALE;
-     //$('#comment').text('(' + mouseX + ',' + mouseY + ')');
+     mouseX = (orig.touches[0].pageX - canvasPosition.left) / SCALE * 2;
+     mouseY = (orig.touches[0].pageY - canvasPosition.left) / SCALE * 2;
    };
 
    function getBodyAtMouse() {
@@ -590,10 +670,57 @@ Physicsb2 = (function() {
      var aabb = new b2AABB();
      aabb.lowerBound.Set(mouseX - 0.001, mouseY - 0.001);
      aabb.upperBound.Set(mouseX + 0.001, mouseY + 0.001);
-     // Query the world for overlapping shapes.
      selectedBody = null;
      world.QueryAABB(getBodyCB, aabb);
+     
+     if (selectedBody) { 
+       for (var k in selectedBody.GetFixtureList().GetShape()) {
+         if (k === "b2CircleShape") {
+           selectedBody.shape ="b2CircleShape";
+         } 
+         if (k === "b2PolygonShape") {
+           selectedBody.shape = "b2PolygonShape";
+         }
+       }
+     }  
+     
      return selectedBody;
+   }
+     
+   function getPointAtMouse() {
+     var smallestDistance = undefined;
+     var d;
+     var closestPoint = undefined;
+     for (var j=0; j<helperPoints.length; j++) {
+       d = distance(helperPoints[j].coords);
+       if (smallestDistance === undefined) {smallestDistance = d; closestPoint = j;}
+       else if ( smallestDistance > d) {
+         smallestDistance = d;
+         closestPoint = j;
+       }
+     }
+     if (smallestDistance < 1) {
+       for (var i=0; i<helperPoints.length; i++) {
+         if (i != closestPoint) {
+            helperPoints[i].color = "white";
+         }
+       }
+       helperPoints[closestPoint].color = "yellow";
+       pointDragged = helperPoints[closestPoint];
+       drawHelperPoints();
+       return helperPoints[closestPoint];
+     } else {
+       return null;
+     }
+   }
+   
+   function distance(helperCoords) {
+     var x1 = helperCoords.x;
+     var y1 = helperCoords.y;
+     var x2 = (event.clientX - canvasPosition.left) / SCALE * 2;
+     var y2 = (event.clientY - canvasPosition.top) / SCALE * 2;
+     var d = Math.sqrt(Math.pow((x2 - x1),2)+Math.pow((y2 - y1),2));
+     return d;
    }
      
    function getBodyCB(fixture) {
@@ -607,34 +734,170 @@ Physicsb2 = (function() {
    }
    
    function bindElements() {
+     if (elementsBound) { return } else { elementsBound = true; }
+     //console.log("bind elements")
      $('#netlogoCanvas').bind('mouseout', function(event) {
 
        $('#netlogoCanvas').unbind('mousemove', handleMouseMove);
        isMouseDown = false;
        mouseX = undefined;
        mouseY = undefined;
+       //console.log("isMouseDown is false");
      });
+     $('#netlogoCanvas').bind('click', function(event) {
+       var mode = Physics.getDrawButtonMode();
+       mouseX = (event.clientX - canvasPosition.left) / SCALE * 2;
+       mouseY = (event.clientY - canvasPosition.top) / SCALE * 2;
+       
+       if (mode === "drag") {
+        var body = getBodyAtMouse();
+        var redrawPoints = false;
+        if(body) { 
+          for (var k in body.GetFixtureList().GetShape()) {
+            if (k === "b2CircleShape") {
+              createHelperPoints("b2CircleShape", body);
+            } 
+            if (k === "b2PolygonShape") {
+              createHelperPoints("b2PolygonShape", body);
+            }
+          }
+        }  
+      } 
+     });
+     
      $('#netlogoCanvas').bind('mousedown', function(event) {
-
+       
+       var mode = Physics.getDrawButtonMode();
+              
        isMouseDown = true;
-       $('#netlogoCanvas').bind('mousemove', handleMouseMove);
+       mouseX = (event.clientX - canvasPosition.left) / SCALE * 2;
+       mouseY = (event.clientY - canvasPosition.top) / SCALE * 2;
+       
+       
+       if (mode === "drag") {
+         pointDragged = getPointAtMouse();
+         if (pointDragged === null) {
+           var body = getBodyAtMouse();
+           if (body!= null) {
+             bodyDragged = {};
+             bodyDragged.body = body;
+             bodyDragged.shape = body.shape;
+             var center = bodyDragged.body.GetPosition();
+             mouseX = (event.clientX - canvasPosition.left) / SCALE * 2;
+             mouseY = (event.clientY - canvasPosition.top) / SCALE * 2;
+             bodyDragged.offset = {x: center.x - mouseX, y:center.y - mouseY};
+           }
+         }
+         $('#netlogoCanvas').on('mousemove', handleMouseMove);
+       } 
+       if (mode === "line") {}
+       if (mode === "circle") {
+         
+         
+       }
+       if (mode === "triangle") {
+         
+         
+       }
+       if (mode === "quad") {
+         
+         
+       }
+       if (mode === "join") {}
+       if (mode === "joint") {}
+       if (mode === "target") {}
      });
      $('#netlogoCanvas').bind('touchstart', function(event) {
        isMouseDown = true;
-       $('#netlogoCanvas').bind('touchmove', handleTouchMove);
+       //$('#netlogoCanvas').bind('touchmove', handleTouchMove);
+       //console.log("isMouseDown is true");
      });
      $('#netlogoCanvas').bind('mouseup', function(event) {
-       $('#netlogoCanvas').unbind('mousemove', handleMouseMove);
+       pointDragged = null;
+       bodyDragged = null;
+       for (var i=0; i<helperPoints.length; i++) {
+         if (helperPoints[i].color != "white") {
+            helperPoints[i].color = "white";
+         }
+       }
+       universe.repaint();
+       world.DrawDebugData();
+      $('#netlogoCanvas').off('mousemove');
+       //$('#netlogoCanvas').unbind('mousemove', handleMouseMove);
        isMouseDown = false;
        mouseX = undefined;
        mouseY = undefined;
+       //console.log("isMouseDown is false");
      });
     $('#netlogoCanvas').bind('touchend', function(event) {
-       $('#netlogoCanvas').unbind('touchmove', handleTouchMove);
+       //$('#netlogoCanvas').unbind('touchmove', handleTouchMove);
        isMouseDown = false;
        mouseX = undefined;
        mouseY = undefined;
+       //console.log("isMouseDown is false");
     }); 
+  }
+  
+  function createHelperPoints(shape, body) {
+    console.log("create helper points for body "+body.GetUserData().id);
+    var bodyCenter = body.GetPosition();
+    var bodyId = body.GetUserData().id;
+    var bodyCenter = body.GetPosition();
+    var pointCoords;
+    var localPosition;
+    var radius;
+    var angle = body.GetAngle();
+    var cosTheta = Math.cos(angle);
+    var sinTheta = Math.sin(angle);
+    helperPoints = [];
+    universe.repaint();
+    world.DrawDebugData();
+
+    var x, y;
+    if (shape === "b2CircleShape") {
+      radius = body.GetFixtureList().GetShape().GetRadius();
+      localPosition = body.GetFixtureList().GetShape().GetLocalPosition();
+      pointCoords = { x:(bodyCenter.x- -localPosition.x), y:(bodyCenter.y - -localPosition.y)};
+      //helperPoints.push({bodyId:bodyId, shape:"b2CircleShape", fixtureIndex: "center", coords:pointCoords, color:"white" });
+      pointCoords = {x:(pointCoords.x - -radius), y:pointCoords.y};
+      helperPoints.push({bodyId:bodyId, shape:"b2CircleShape", fixtureIndex: "radius", coords:pointCoords, color:"white" });
+    } else if (shape === "b2PolygonShape") {
+      //console.log("vertices ",body.GetFixtureList().GetShape().GetVertices()); 
+      fixturePoints = body.GetFixtureList().GetShape().GetVertices();
+      for (var i=0; i < fixturePoints.length; i++) {
+        x = fixturePoints[i].x;
+        y = fixturePoints[i].y;
+        pointCoords = {x:(x*cosTheta - y*sinTheta), y:(x*sinTheta + y*cosTheta)};
+        pointCoords = { x:(bodyCenter.x- -pointCoords.x), y:(bodyCenter.y + pointCoords.y)};
+        helperPoints.push({bodyId:bodyId, shape:"b2PolygonShape", fixtureIndex: i, coords:pointCoords, color:"white" });  
+      }
+    }
+    drawHelperPoints();
+  }
+  
+  function drawHelperPoints() {
+    var coords;
+    //console.log("2"+helperPoints);
+    for (var i=0; i<helperPoints.length; i++) {
+      pixelCoords = helperPoints[i].coords;
+      //console.log(pixelCoords);
+      coords = {x: pixelCoords.x * SCALE, y: pixelCoords.y * SCALE }
+      //console.log(coords);
+      var canvas = document.getElementsByClassName('netlogo-canvas')[0];
+      if (canvas.getContext) {
+        var ctx = canvas.getContext('2d');
+        ctx.beginPath();
+        ctx.arc(coords.x, coords.y, 12, 0, Math.PI * 2, true); // Outer circle
+        ctx.fillStyle = "black";
+        ctx.fill();
+        ctx.strokeStyle = "limegreen";
+        ctx.lineWidth=5;
+        ctx.stroke();
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText(i,coords.x - 6,coords.y + 8);
+      }
+    }
   }
 
   function getWorld() {
@@ -648,8 +911,12 @@ Physicsb2 = (function() {
   function getAllBodies() {
     return bodyObj;
   }
-
-
+  
+  function drawDebugData() {
+    world.DrawDebugData();
+  }
+  
+  
   return {
     startWorld: startWorld,
     stopWorld: stopWorld,
@@ -677,7 +944,9 @@ Physicsb2 = (function() {
     applyTorque: applyTorque,
     applyAngularImpulse: applyAngularImpulse,
     updateBodyId: updateBodyId,
-    getAllBodies: getAllBodies
+    getAllBodies: getAllBodies,
+    radianstodegrees: radianstodegrees,
+    drawDebugData: drawDebugData
   };
 
 })();
