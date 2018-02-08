@@ -8,6 +8,7 @@ Physicsb2 = (function() {
   var running = false;
   var elementsBound = false;
   var helperPoints = [];
+  var draggerPoints = [];
    // get ready to capture mouse events
   var isMouseDown = false;
   var mouseX = undefined;
@@ -19,6 +20,8 @@ Physicsb2 = (function() {
   var mousePVec;
   var pointDragged = null;
   var bodyDragged = null;
+  var grabPointDragged = null;
+  var totalObjectsCreated;
   
   var   b2Vec2 = Box2D.Common.Math.b2Vec2
      ,	b2BodyDef = Box2D.Dynamics.b2BodyDef
@@ -88,37 +91,21 @@ Physicsb2 = (function() {
     console.log("reset canvas position " + canvasPosition);
   });
 
-  //Physics.createWorld([10, [21, 21] ])
   function createWorld(m) {
     
-    //console.log(m);
     bodyObj = {};
     turtleObj = {};
     bindElements();
     var gravity = m[0]
     var range = m[1];
     wrap = m[2];
-    
-    //console.log("create world "+gravity[0]+" "+gravity[1]+" "+range[0]+" "+range[1]+" "+wrap[0]+" "+wrap[1]);
-    
+    totalObjectsCreated = 0;  
     NLOGO_WIDTH = range[0];
     NLOGO_HEIGHT = range[1];
-    console.log("is there p",p);
-    //if (!p) {
-      console.log("there is p");
       if ($("#netlogoCanvas").length === 0) { 
-        console.log("there is a .netlogoCanvas");
-        //$("body").append("<div style='border:2px solid red; width:400px;'><canvas class='netlogo-canvas2' id='netlogoCanvas' style='width:400px; height:400px'></canvas></div>"); 
-        //$(".netlogo-canvas").attr("id","netlogoCanvas"); 
-        //$("#netlogoCanvas").css("border", "2px solid red");
       }
       p = $( "#netlogoCanvas").parent();//$( "#netlogoCanvas";
       canvasPosition = p.offset();
-      console.log("set canvas position " + canvasPosition);
-      //canvasPosition.left = canvasPosition.left + 20;
-      //canvasPosition.top = canvasPosition.top + 40;
-
-    //}
     world = new b2World(
           new b2Vec2(gravity[0], gravity[1])    //gravity
        ,  true                 //allow sleep
@@ -129,6 +116,7 @@ Physicsb2 = (function() {
         turtleObj[turtleId] = universe.model.turtles[turtleId].who;
       }
     }
+    grabPoints = {};
     setupDebugDraw();
   }
 
@@ -224,10 +212,11 @@ Physicsb2 = (function() {
     bodyDef.position.y = roundToTenths(box2dCoords[1]);
     //console.log(bodyDef.position);
     bodyObj[id] = world.CreateBody(bodyDef);
+    totalObjectsCreated++;
   }
   
   function updateBodyId(name, who) {
-    console.log("updateBodyId between " + name + " "+who);
+    //console.log("updateBodyId between " + name + " "+who);
     bodyObj[who] = bodyObj[name];
     //var tempBody = bodyObj[name];
     delete bodyObj[name];
@@ -285,11 +274,12 @@ Physicsb2 = (function() {
       fixDef.shape.SetLocalPosition(
         new b2Vec2(roundToTenths(box2dFixtureCoords[0][0] - offsetX), roundToTenths(box2dFixtureCoords[0][1] - offsetY)),
         new b2Vec2(roundToTenths(box2dFixtureCoords[1][0] - offsetX), roundToTenths(box2dFixtureCoords[1][1] - offsetY)));
-    } else if (shape === "edge") {
+    } else if (shape === "line") {
       fixDef.shape = new b2PolygonShape();
       fixDef.shape.SetAsEdge(
         new b2Vec2(roundToTenths(box2dFixtureCoords[0][0] - offsetX), roundToTenths(box2dFixtureCoords[0][1] - offsetY)),
         new b2Vec2(roundToTenths(box2dFixtureCoords[1][0] - offsetX), roundToTenths(box2dFixtureCoords[1][1] - offsetY)))
+        //createGrabPoint(bodyObj[bodyA]);
     } else {
       fixDef.shape = new b2PolygonShape; 
       var carp = [];
@@ -299,7 +289,9 @@ Physicsb2 = (function() {
       fixDef.shape.SetAsArray(carp,carp.length);
     }
     bodyObj[bodyA].CreateFixture(fixDef);
-    
+    if (shape === "line") {
+      createGrabPoint(bodyObj[bodyA]);
+    }
     redrawWorld();
   }
   function addTargetToBody(m) {
@@ -463,14 +455,14 @@ Physicsb2 = (function() {
   
   
   function drag(m) {
-    console.log("drag");
+    //console.log("drag");
     var draggerId = m[0];
     var callback = m[1];
     //dragging = window.setInterval(dragIt, 1000 / 60);
     //while (isMouseDown) {
     //  console.log("mousedown drag " + draggerId)
     //}
-    console.log("finished dragging, ",callback);
+    //console.log("finished dragging, ",callback);
   }
   
   function dragIt() {
@@ -609,53 +601,72 @@ Physicsb2 = (function() {
   }
 
    var handleMouseMove = function(e) {
-       var vertices;
-       var tempHelperPoint, newVertices;
-       var center;
-       mouseX = (e.clientX - canvasPosition.left) / SCALE * 2;
-       mouseY = (e.clientY - canvasPosition.top) / SCALE * 2;
-       //var mode = Physics.getDrawButtonMode();
-       if (pointDragged != null) {// && mode === "drag") {
-         //console.log("point dragged",pointDragged);
-         if (pointDragged.shape === "b2CircleShape") {
-           helperPoints[0].coords.x = mouseX;
-           helperPoints[0].coords.y = mouseY;
-           center = Physicsb2.getBodyObj(pointDragged.bodyId).GetPosition();
-           //var distance = (findDistance(box2dFixtureCoords[0], box2dFixtureCoords[1]));
-           //console.log(distance(center));
-           Physicsb2.getBodyObj(pointDragged.bodyId).GetFixtureList().GetShape().SetRadius(distance(center));
-           Physicsb2.getBodyObj(pointDragged.bodyId).SetAngle(0);
-           helperPoints[0].coords.x = mouseX;
-           helperPoints[0].coords.y = mouseY;
-           universe.repaint();
-           world.DrawDebugData(); 
-           drawHelperPoints();
-         } else if (pointDragged.shape === "b2PolygonShape") {
-           helperPoints[pointDragged.fixtureIndex].coords.x = mouseX;
-           helperPoints[pointDragged.fixtureIndex].coords.y = mouseY;
-           newVertices = [];
-           center = Physicsb2.getBodyObj(pointDragged.bodyId).GetPosition();
-           for (var p=0; p<helperPoints.length; p++) {
-             newVertices.push(new b2Vec2(helperPoints[p].coords.x - center.x, helperPoints[p].coords.y - center.y)); 
-           }
-           Physicsb2.getBodyObj(pointDragged.bodyId).GetFixtureList().GetShape().SetAsArray(newVertices, newVertices.length);
-           Physicsb2.getBodyObj(pointDragged.bodyId).SetAngle(0);
-           helperPoints[pointDragged.fixtureIndex].coords.x = mouseX;
-           helperPoints[pointDragged.fixtureIndex].coords.y = mouseY;
-           universe.repaint();
-           world.DrawDebugData(); 
-           drawHelperPoints();
+     var vertices;
+     var tempHelperPoint, newVertices;
+     var center;
+     
+     mouseX = (e.clientX - canvasPosition.left) / SCALE * 2;
+     mouseY = (e.clientY - canvasPosition.top) / SCALE * 2;
+     console.log("--- DRAG ---");
+     //var mode = Physics.getDrawButtonMode();
+     if (pointDragged != null) {// && mode === "drag") {
+       //console.log("drag a point");
+       //console.log("point dragged",pointDragged);
+       if (pointDragged.shape === "b2CircleShape") {
+         console.log("drag a circle");
+         helperPoints[0].coords.x = mouseX;
+         helperPoints[0].coords.y = mouseY;
+         center = Physicsb2.getBodyObj(pointDragged.bodyId).GetPosition();
+         //var distance = (findDistance(box2dFixtureCoords[0], box2dFixtureCoords[1]));
+         //console.log(distance(center));
+         Physicsb2.getBodyObj(pointDragged.bodyId).GetFixtureList().GetShape().SetRadius(distance(center));
+         Physicsb2.getBodyObj(pointDragged.bodyId).SetAngle(0);
+         helperPoints[0].coords.x = mouseX;
+         helperPoints[0].coords.y = mouseY;
+         console.log("repaint");
+         universe.repaint();
+         world.DrawDebugData(); 
+         drawHelperPoints();
+         drawGrabPoints();
+       } else if (pointDragged.shape === "b2PolygonShape") {
+         console.log("drag a polygon");
+         helperPoints[pointDragged.fixtureIndex].coords.x = mouseX;
+         helperPoints[pointDragged.fixtureIndex].coords.y = mouseY;
+         newVertices = [];
+         center = Physicsb2.getBodyObj(pointDragged.bodyId).GetPosition();
+         for (var p=0; p<helperPoints.length; p++) {
+           newVertices.push(new b2Vec2(helperPoints[p].coords.x - center.x, helperPoints[p].coords.y - center.y)); 
          }
-       } else if (bodyDragged != null) {
-           var center = {x: bodyDragged.offset.x + mouseX, y: bodyDragged.offset.y + mouseY };
-           bodyDragged.body.SetPosition(center);
-           universe.repaint();
-           world.DrawDebugData(); 
-           //if (bodyDragged.shape === "b2PolygonShape") {
-           createHelperPoints(bodyDragged.shape, bodyDragged.body);
-           drawHelperPoints();
+         Physicsb2.getBodyObj(pointDragged.bodyId).GetFixtureList().GetShape().SetAsArray(newVertices, newVertices.length);
+         Physicsb2.getBodyObj(pointDragged.bodyId).SetAngle(0);
+         helperPoints[pointDragged.fixtureIndex].coords.x = mouseX;
+         helperPoints[pointDragged.fixtureIndex].coords.y = mouseY;
+         console.log("repaint");
+         universe.repaint();
+         world.DrawDebugData(); 
+         drawHelperPoints();
+         //drawGrabPoints();
+         console.log("CREATE GRAB POINT", grabPointDragged);
+         createGrabPoint(bodyObj[grabPointDragged]);
        }
-       
+     } else if (bodyDragged != null) {
+         console.log("drag a body");
+         var center = {x: bodyDragged.offset.x + mouseX, y: bodyDragged.offset.y + mouseY };
+         bodyDragged.body.SetPosition(center);
+         //console.log("repaint");
+         universe.repaint();
+         world.DrawDebugData(); 
+         createHelperPoints(bodyDragged.shape, bodyDragged.body);
+         drawHelperPoints(); 
+         drawGrabPoints();
+         if (grabPointDragged != null) {
+           console.log("drag a grab point");
+           //createGrabPoint(bodyObj[grabPointDragged]);
+           grabPoints[grabPointDragged] = {x: mouseX, y: mouseY };
+           
+           createGrabPoint(bodyObj[grabPointDragged]);
+         }
+     }
    };
    
    var handleTouchMove = function(e) {
@@ -686,7 +697,7 @@ Physicsb2 = (function() {
      
      return selectedBody;
    }
-     
+  
    function getPointAtMouse() {
      var smallestDistance = undefined;
      var d;
@@ -706,9 +717,43 @@ Physicsb2 = (function() {
          }
        }
        helperPoints[closestPoint].color = "yellow";
-       pointDragged = helperPoints[closestPoint];
+       helperPointDragged = helperPoints[closestPoint];
        drawHelperPoints();
+       drawGrabPoints();
        return helperPoints[closestPoint];
+     } else {
+       return null;
+     }
+   }
+  
+   function getGrabPointAtMouse() {
+     //console.log("getGrabPointAtMouse");
+     //console.log(grabPoints);
+     var smallestDistance = undefined;
+     var d;
+     var closestPoint = undefined;
+     for (var j in grabPoints) {
+       d = distance(grabPoints[j]);
+       if (smallestDistance === undefined) {smallestDistance = d; closestPoint = j;}
+       else if ( smallestDistance > d) {
+         smallestDistance = d;
+         closestPoint = j;
+       }
+     }
+     //console.log(smallestDistance);
+     if (smallestDistance < 1) {
+       for (var i in grabPoints) {
+         if (i != closestPoint) {
+            grabPoints[i].color = "white";
+         }
+       }
+       grabPoints[closestPoint].color = "yellow";
+       grabPointDragged = closestPoint;
+       //grabPointDragged = grabPoints[closestPoint];
+      //grabPointDragged.bodyId = ?
+       //drawGrabPoints();
+       //console.log(closestPoint);
+       return bodyObj[closestPoint];
      } else {
        return null;
      }
@@ -733,6 +778,19 @@ Physicsb2 = (function() {
      return true;
    }
    
+   function deleteSelectedObject() {
+     if (helperPoints || (helperPoints.length > 0)) {
+       //console.log(helperPoints[0].bodyId);
+       var bodyId = helperPoints[0].bodyId;
+       bodyObj[bodyId].GetWorld().DestroyBody(bodyObj[bodyId]);
+       delete bodyObj[bodyId];
+       delete grabPoints[bodyId];
+                console.log("repaint");
+       universe.repaint();
+       world.DrawDebugData();
+     }
+   }
+   
    function bindElements() {
      if (elementsBound) { return } else { elementsBound = true; }
      //console.log("bind elements")
@@ -750,9 +808,18 @@ Physicsb2 = (function() {
        mouseY = (event.clientY - canvasPosition.top) / SCALE * 2;
        
        if (mode === "drag") {
+        //console.log("remove class hidden from #physicsSettings");   
+        $("#physicsSettings").removeClass("hidden").css("display","inline-block");
         var body = getBodyAtMouse();
         var redrawPoints = false;
         if(body) { 
+          
+          ///// ADD TO physics.js
+          $("#physicsSettings").removeClass("hidden").css("display","inline-block");
+          $("#physicsSettings .objectId").val(body.GetUserData().id);
+          $("#physicsSettings .objectType").val(body.GetType());
+          //console.log(body.GetRestitu)
+          
           for (var k in body.GetFixtureList().GetShape()) {
             if (k === "b2CircleShape") {
               createHelperPoints("b2CircleShape", body);
@@ -761,24 +828,29 @@ Physicsb2 = (function() {
               createHelperPoints("b2PolygonShape", body);
             }
           }
-        }  
+        } else {
+          
+          ///// ADD TO physics.js
+          $("#physicsSettings").addClass("hidden");
+        } 
       } 
      });
      
      $('#netlogoCanvas').bind('mousedown', function(event) {
-       
+      console.log("---mousedown"); 
        var mode = Physics.getDrawButtonMode();
-              
+       var coords;
        isMouseDown = true;
        mouseX = (event.clientX - canvasPosition.left) / SCALE * 2;
        mouseY = (event.clientY - canvasPosition.top) / SCALE * 2;
-       
-       
        if (mode === "drag") {
+         
+           //grabPointDragged = null;
          pointDragged = getPointAtMouse();
          if (pointDragged === null) {
            var body = getBodyAtMouse();
            if (body!= null) {
+             grabPointDragged = null;
              bodyDragged = {};
              bodyDragged.body = body;
              bodyDragged.shape = body.shape;
@@ -786,22 +858,69 @@ Physicsb2 = (function() {
              mouseX = (event.clientX - canvasPosition.left) / SCALE * 2;
              mouseY = (event.clientY - canvasPosition.top) / SCALE * 2;
              bodyDragged.offset = {x: center.x - mouseX, y:center.y - mouseY};
+           } else {
+             body = getGrabPointAtMouse();
+             //console.log("is there a grab point at mouse");
+             //console.log(body);
+             if (body != null) {
+               
+               bodyDragged = {};
+               bodyDragged.body = body;
+               
+               for (var k in body.GetFixtureList().GetShape()) {
+                 if (k === "b2PolygonShape") {
+                   bodyDragged.shape = "b2PolygonShape";
+                 }
+               }
+               
+               //bodyDragged.shape = body.shape;
+               var center = bodyDragged.body.GetPosition();
+               mouseX = (event.clientX - canvasPosition.left) / SCALE * 2;
+               mouseY = (event.clientY - canvasPosition.top) / SCALE * 2;
+               bodyDragged.offset = {x: center.x - mouseX, y:center.y - mouseY};
+               //console.log("FOUND A GRAB POINT");
+               //console.log(bodyDragged);
+             }
+             //bodyDragged = bodyObj[grabPointId];
            }
          }
          $('#netlogoCanvas').on('mousemove', handleMouseMove);
        } 
-       if (mode === "line") {}
+       if (mode === "line") {
+         //physics:create-object "floor" (list ["behavior" "static"] ["shape" "edge"] [ "coords" [ [ -15 -15 ] [ 15 -14 ]]] [ "heading" 0 ])
+         //physics:create-object "floor" (list ["behavior" "static"] ["shape" "edge"] [ "coords" [ [ -15 -15 ] [ 15 -14 ]]] [ "heading" 0 ])
+         coords = box2dtonlogo({x:mouseX, y:mouseY});
+         console.log(coords);
+         Physics.createObject("auto-gen-object-"+totalObjectsCreated, [ 
+           ["behavior", "static"], 
+           ["shape", "line"], 
+           //["coords", [coords.x, coords.y]], 
+           ["coords", [ [coords.x - 3, coords.y], [coords.x + 3, coords.y]]]]);
+       
+       }
        if (mode === "circle") {
-         
-         
+         coords = box2dtonlogo({x:mouseX, y:mouseY});
+         Physics.createObject("auto-gen-object-"+totalObjectsCreated, [ 
+           ["behavior", "dynamic"], 
+           ["shape", "circle"], 
+           ["coords", [coords.x, coords.y]], 
+           ["radius", 1]]);
        }
        if (mode === "triangle") {
-         
-         
+         coords = box2dtonlogo({x:mouseX, y:mouseY});
+         Physics.createObject("auto-gen-object-"+totalObjectsCreated, [ 
+           ["behavior", "dynamic"], 
+           ["shape", "polygon"], 
+           ["coords", [coords.x, coords.y]], 
+           ["helper-coords", [ [coords.x, coords.y], [coords.x + 3, coords.y + 3], [coords.x, coords.y + 3]]]]);
        }
        if (mode === "quad") {
-         
-         
+         coords = box2dtonlogo({x:mouseX, y:mouseY});
+         Physics.createObject("auto-gen-object-"+totalObjectsCreated, [ 
+           ["behavior", "dynamic"], 
+           ["shape", "polygon"], 
+           ["coords", [coords.x, coords.y]], 
+           ["helper-coords", [ [coords.x - 2, coords.y + 3], [coords.x - 2, coords.y], [coords.x, coords.y - 2], [coords.x + 3, coords.y]]]]);
        }
        if (mode === "join") {}
        if (mode === "joint") {}
@@ -813,15 +932,20 @@ Physicsb2 = (function() {
        //console.log("isMouseDown is true");
      });
      $('#netlogoCanvas').bind('mouseup', function(event) {
+       console.log("mouseup---");
        pointDragged = null;
        bodyDragged = null;
+       console.log(helperPoints.length);
        for (var i=0; i<helperPoints.length; i++) {
          if (helperPoints[i].color != "white") {
             helperPoints[i].color = "white";
          }
        }
+       console.log("repaint");
        universe.repaint();
        world.DrawDebugData();
+       drawHelperPoints();
+       drawGrabPoints();
       $('#netlogoCanvas').off('mousemove');
        //$('#netlogoCanvas').unbind('mousemove', handleMouseMove);
        isMouseDown = false;
@@ -838,8 +962,25 @@ Physicsb2 = (function() {
     }); 
   }
   
+  function createGrabPoint(body) {
+    console.log("create grab point");
+    console.log(body);
+    var bodyId = body.GetUserData().id;
+    var bodyCenter = body.GetPosition();
+    if (body.GetFixtureList()) {
+      if (body.GetFixtureList().GetShape()) {
+        var vertices = body.GetFixtureList().GetShape().GetVertices();
+        var center = {x:((vertices[0].x+vertices[1].x) / 2), y:((vertices[0].y+vertices[1].y) / 2)};
+        center = {x: (center.x + bodyCenter.x), y: (center.y + bodyCenter.y)};
+        grabPoints[bodyId] = center;
+        drawGrabPoints();
+      }
+    }
+  }
+  
   function createHelperPoints(shape, body) {
     console.log("create helper points for body "+body.GetUserData().id);
+    console.log(shape);
     var bodyCenter = body.GetPosition();
     var bodyId = body.GetUserData().id;
     var bodyCenter = body.GetPosition();
@@ -850,19 +991,18 @@ Physicsb2 = (function() {
     var cosTheta = Math.cos(angle);
     var sinTheta = Math.sin(angle);
     helperPoints = [];
+             console.log("repaint");
     universe.repaint();
     world.DrawDebugData();
-
     var x, y;
     if (shape === "b2CircleShape") {
       radius = body.GetFixtureList().GetShape().GetRadius();
       localPosition = body.GetFixtureList().GetShape().GetLocalPosition();
       pointCoords = { x:(bodyCenter.x- -localPosition.x), y:(bodyCenter.y - -localPosition.y)};
-      //helperPoints.push({bodyId:bodyId, shape:"b2CircleShape", fixtureIndex: "center", coords:pointCoords, color:"white" });
       pointCoords = {x:(pointCoords.x - -radius), y:pointCoords.y};
       helperPoints.push({bodyId:bodyId, shape:"b2CircleShape", fixtureIndex: "radius", coords:pointCoords, color:"white" });
     } else if (shape === "b2PolygonShape") {
-      //console.log("vertices ",body.GetFixtureList().GetShape().GetVertices()); 
+      
       fixturePoints = body.GetFixtureList().GetShape().GetVertices();
       for (var i=0; i < fixturePoints.length; i++) {
         x = fixturePoints[i].x;
@@ -873,6 +1013,7 @@ Physicsb2 = (function() {
       }
     }
     drawHelperPoints();
+    drawGrabPoints();
   }
   
   function drawHelperPoints() {
@@ -898,6 +1039,48 @@ Physicsb2 = (function() {
         ctx.fillText(i,coords.x - 6,coords.y + 8);
       }
     }
+    //drawGrabPoints();
+  }
+  
+  function drawGrabPoints() {
+    console.log("draw grab points");
+    var canvas = document.getElementsByClassName('netlogo-canvas')[0];
+    var ctx = canvas.getContext('2d');
+    if (canvas.getContext) {
+      var coords;
+      for (point in grabPoints) {
+        pixelCoords = grabPoints[point];
+        coords = {x: pixelCoords.x * SCALE, y: pixelCoords.y * SCALE }
+        ctx.beginPath();
+        ctx.arc(coords.x, coords.y, 12, 0, Math.PI * 2, true); // Outer circle
+        ctx.fillStyle = "gray";
+        ctx.fill();
+        ctx.strokeStyle = "gray";
+        ctx.lineWidth=5;
+        ctx.stroke();
+      }
+    }
+  }
+  
+  function drawGrabPoint(bodyId) {
+    var canvas = document.getElementsByClassName('netlogo-canvas')[0];
+    var ctx = canvas.getContext('2d');
+    if (canvas.getContext) {
+      var coords;
+        pixelCoords = grabPoints[bodyId];
+        coords = {x: pixelCoords.x * SCALE, y: pixelCoords.y * SCALE }
+        ctx.beginPath();
+        ctx.arc(coords.x, coords.y, 12, 0, Math.PI * 2, true); // Outer circle
+        ctx.fillStyle = "gray";
+        ctx.fill();
+        ctx.strokeStyle = "limegreen";
+        ctx.lineWidth=5;
+        ctx.stroke();
+      }
+  }
+  
+  function triggerDragMode() {
+    drawGrabPoints();
   }
 
   function getWorld() {
@@ -946,7 +1129,9 @@ Physicsb2 = (function() {
     updateBodyId: updateBodyId,
     getAllBodies: getAllBodies,
     radianstodegrees: radianstodegrees,
-    drawDebugData: drawDebugData
+    drawDebugData: drawDebugData,
+    deleteSelectedObject: deleteSelectedObject,
+    triggerDragMode: triggerDragMode
   };
 
 })();

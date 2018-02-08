@@ -423,10 +423,13 @@
   border: 2px solid orange;
 }
 
+/*
 #physicsMenu.selected i:hover {
-  color:blue;
-}
+//  color:blue;
+  border: 2px solid yellow;
+}*/
 
+/*
 #physicsMenu {
   position: absolute;
   top: 0px;
@@ -439,7 +442,7 @@
   height: 30px;
   z-index: 100;
   padding: 1px 0px 0px 1px
-}
+}*/
 
 #physicsStateControls {
   float: right;
@@ -450,24 +453,27 @@
   padding: 5px;
 }
 
+/*
 #physicsStateControls i {
   padding: 6px 3px 6px 3px;
   border: 2px solid #ccc;
   background-color: #ccc;
   border-radius: 5px;
   color: black;
-}
+}*/
 
-#physicsStateControls .hidden {
+#physicsMenu .hidden {
   display: none;
 }
 
+/*
 //#physicsStateControls .selected {
 //  color: black;
 //}
-
+*/
+/*
 #physicsDrawControls {
-  overflow-x: scroll;
+  //overflow-x: scroll;
   overflow-y: hidden;
   white-space:nowrap;
   width: calc(100% - 70px);
@@ -480,4 +486,81 @@
 #physicsDrawControls img {
   border: 2px solid gray;
   border-radius: 5px;
+}
+*/
+
+#physicsMenu {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: calc(100% - 3px);
+  color: black;
+  font-size: 16px;
+  height: 30px;
+  z-index: 100;
+  padding: 1px 0px 0px 1px
+}
+
+#physicsSettings {
+  position: absolute; 
+  top: 420px; 
+  background-color: #ccc; 
+  //padding: 3px; 
+  width: 100%; 
+  border: 1px solid limegreen;
+}
+/*
+#physicsTrash {
+  float:right;
+//  width: 16px;
+//  color: black;
+//  background-color: white;
+//  padding: 3px;border: 1px solid black;
+//  padding-right: 30x;
+  font-size: 14px;
+}*/
+
+#physicsSettings input[type='number'] {
+  width: 40px;
+}
+#physicsSettings input[type='text'] {
+  width: 90px;
+}
+
+#physicsMenu img {
+  border: 2px solid gray;
+  border-radius: 5px;
+}
+
+#physicsMenu i, #physicsSettings i {
+  border: 2px solid white;
+  width: 20px;
+  color: white;
+  background-color: rebeccapurple; //gray;
+  padding: 6px 3px 6px 3px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+#physicsMenu i:hover, #physicsSettings i:hover {
+  border: 2px solid yellow; //limegreen;
+}
+
+#physicsMenu .leftControls, #physicsSettings .leftControls {
+  overflow-y: hidden;
+  white-space: nowrap;
+  width: calc(100% - 125px);
+  display: inline-block;
+  background-color: #ccc;
+  height: 33px;
+  padding: 5px;
+}
+
+#physicsMenu .rightControls, #physicsSettings .rightControls {
+  float: right;
+  width: 105px;
+  text-align: right;
+  background-color: #ccc;
+  height: 33px;
+  padding: 5px;
 }

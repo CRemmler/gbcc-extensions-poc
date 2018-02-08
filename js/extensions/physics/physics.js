@@ -28,32 +28,46 @@ Physics = (function() {
     $(".physics-controls").css("display","none");
     
     spanText = "<div id='physicsMenu'>";
-    spanText +=       "<div id='physicsDrawControls'>";
-    spanText +=         " <img src='js/extensions/physics/images/img5.png' id='physicsDrag'>"
+    spanText +=       "<div class='leftControls'>"; //id='physicsDrawControls'>";
+    spanText +=         " <img src='js/extensions/physics/images/img5-old.png' id='physicsDrag'>"
     spanText +=         " <img src='js/extensions/physics/images/img6.png' id='physicsLine'>"
     spanText +=         " <img src='js/extensions/physics/images/img4.png' id='physicsCircle'>"
     spanText +=         " <img src='js/extensions/physics/images/img7.png' id='physicsTriangle'>"
-    spanText +=         " <img src='js/extensions/physics/images/img8.png' id='physicsQuad'>"
+    //spanText +=         " <img src='js/extensions/physics/images/img8.png' id='physicsQuad'>"
     spanText +=         " <img src='js/extensions/physics/images/img3.png' id='physicsJoin'>"
     spanText +=         " <img src='js/extensions/physics/images/img2.png' id='physicsJoint'>"
     spanText +=         " <img src='js/extensions/physics/images/img1.png' id='physicsTarget'>"
     spanText +=       "</div>";
-    spanText +=       "<div id='physicsStateControls'>";
-
-/*
-    spanText +=         "<span id='physicsReset'>Reset</span>";
-    spanText +=         "<span id='physicsPlay'>Play</span>";
-    spanText +=         "<span id='physicsPause>Pause</span>";
-*/
+    spanText +=       "<div class='rightControls'>"; //"<div id='physicsStateControls'>";
     
-    spanText +=         "<i class='fa fa-refresh hidden' id='physicsReset' aria-hidden='true'></i>";
-    spanText +=         "<i class='fa fa-play hidden' id='physicsPlay' aria-hidden='true'></i>";
-    spanText +=         "<i class='fa fa-pause hidden' id='physicsPause' aria-hidden='true'></i>";
-
+    spanText +=         "<i class='fa fa-save' id='physicsSave' aria-hidden='true'></i>";
+    spanText +=         " <i class='fa fa-refresh' id='physicsRefresh' aria-hidden='true'></i>";
+    spanText +=         " <i class='fa fa-play' id='physicsPlay' aria-hidden='true'></i>";
+    spanText +=         " <i class='fa fa-pause hidden' id='physicsPause' aria-hidden='true'></i>";
     spanText +=       "</div>";
     spanText += "</div>";
     $(".netlogo-view-container").append(spanText);  
+    
+    
+    spanText =  "<div id='physicsSettings'>";
+    spanText += "  <div class='leftControls'>";//"<span id='shapeSettings'>";
+    spanText += "    Id: <input class='objectId' type='text' value='123'>";
+    spanText += "    Type:<select class='objectType' style='background-color:white'><option value='2'>Dynamic</option><option value='0'>Static</option><option value='1'>Ghost</option></select>";
+    spanText += "    D:<input type='number' value='0.5'>";
+    spanText += "    R:<input type='number' value='0.2'>";
+    spanText += "    F:<input type='number' value='0.3'>";
+    spanText += "  </div>"; 
+    spanText += "  <div class='rightControls'>";//"<span id='physicsTrash'>";
+    spanText += "    <i class='fa fa-trash-o' aria-hidden='true'></i>";
+    spanText += "  </div>";
+    spanText += "</div>";
+    
+    $(".netlogo-view-container").append(spanText);  
+    
     $("#physicsMenu").css("display", "none");
+    
+    $("#physicsSettings").css("display", "none");
+
     setupEventListeners();
   }
   
@@ -92,7 +106,6 @@ Physics = (function() {
     var restitution = 0.5;
     var bodyCoords, fixtureCoords;
     for (var i=0; i<settings.length; i++) {
-      //console.log(key+" "+value);
       key = settings[i][0];
       value = settings[i][1];
       switch ( key ) {
@@ -107,33 +120,21 @@ Physics = (function() {
         case "restitution": restitution = value; break;
       }
     }
-    
     parentId = name+"parent";
-    //physics:create-object "floor" (list ["behavior" "static"] ["shape" "edge"] [ "coords" [ [ -15 -15 ] [ 15 -14 ]]] [ "heading" 0 ])
-    if (shape === "edge") {
+    if (shape === "line") {
       bodyCoords = [ (coords[0][0] - -coords[1][0]), (coords[0][1] - -coords[1][1]) / 2 ];
       fixtureCoords = coords;
-      //Physicsb2.addBody([ parentId, behavior, parentId, bodyCoords, heading ]);
-      //Physicsb2.addFixtureToBody([ name+"child", parentId, bodyCoords, fixtureCoords, shape, [density, friction, restitution], 0 ]);  
     }
-
     if (shape === "circle") {
       bodyCoords = coords;
       fixtureCoords = [ [ coords[0], coords[1]], [coords[0]+radius, coords[1]+radius ]];
-      //Physicsb2.addBody([ parentId, behavior, parentId, bodyCoords, heading]);
-      //Physicsb2.addFixtureToBody([ name+"child", parentId, bodyCoords, fixtureCoords, shape, [0.5, 0.2, 0.7], 0]);  
     }
-    
     if (shape === "polygon") {
       bodyCoords = coords;
-      //fixtureCoords = [ [ coords[0], coords[1]], [coords[0]+radius, coords[1]+radius ]];
-      //Physicsb2.addBody([ parentId, behavior, parentId, bodyCoords, heading]);
-      //Physicsb2.addFixtureToBody([ name+"child", parentId, bodyCoords, fixtureCoords, shape, [0.5, 0.2, 0.7], 0]);  
     }
     Physicsb2.addBody({
       "parentId": parentId, 
       "behavior": behavior, 
-      "parentId": parentId, 
       "bodyCoords": bodyCoords, 
       "heading": heading 
     });
@@ -200,17 +201,7 @@ Physics = (function() {
       if (fixtureType === "circle") {
         console.log("radius: "+radius);
       }
-      //console.log(fixtures.GetType());
-      // CHANGE RADIUS Physicsb2.getAllBodies()["1"].GetFixtureList().GetShape().b2CircleShape(4)
-      //console.log(Physicsb2.getAllBodies()["1"].GetPosition());
-      
-      
-      //console.log(Physicsb2.getAllBodies()["1"].GetFixtureList().GetShape().GetLocalPosition());
-      //physics:create-object "floor" (list "static-edge" (list [ -15 -15 ] [ 15 -14 ] 0) )
-      //physics:create-object (word \"ball\" my-name) (list "dynamic-circle" (list xcor ycor radius heading) 
-      //console.log(typeof fixtures);
     }
-    //return objectsList;  
   }
 
   function setupEventListeners() {
@@ -245,16 +236,26 @@ Physics = (function() {
     assignDrawButtonMode("Quad"); 
     assignDrawButtonMode("Join"); 
     assignDrawButtonMode("Joint"); 
-    assignDrawButtonMode("Target"); 
+    assignDrawButtonMode("Target");
+    $(".netlogo-canvas").on("keydown", function(event) {
+      console.log(event.which);
+      if (event.which === 8) {
+        Physicsb2.deleteSelectedObject();
+      }
+    });
+
   }
   
   function assignDrawButtonMode(name) {
-    $("#physicsDrawControls").on("click", "#physics"+name, function() {
+    $("#physicsMenu .leftControls").on("click", "#physics"+name, function() {
       if ($("#physicsMenu").hasClass("selected")) {
         console.log(name);
         mode = name.toLowerCase();
         $("#physicsMenu img.selected").removeClass("selected");
         $(this).addClass("selected");
+        if (mode === "drag") {  
+          Physicsb2.triggerDragMode(); 
+        }
       }
     });
   }
@@ -274,7 +275,9 @@ Physics = (function() {
       $("#physicsContainer").addClass("selected");
     //  $(".netlogo-view-container").css("z-index","0");
       $("#physicsPlay").removeClass("hidden");
-      $("#physicsReset").removeClass("hidden");
+      $("#physicsMenu .rightControls i:not(#physicsPause)").removeClass("hidden");
+
+      //$("#physicsReset").removeClass("hidden");
       $("#physicsMenu").addClass("selected");
       universe.repaint();
       Physicsb2.drawDebugData();
@@ -286,15 +289,18 @@ Physics = (function() {
   //    $(".netlogo-view-container").css("z-index","1");
       //$("#physicsStateControls").addClass("hidden");
       $("#physicsMenu").removeClass("selected");
-      
-      $("#physicsPlay").addClass("hidden");
-      $("#physicsReset").addClass("hidden");
-      $("#physicsPause").addClass("hidden");
+      $("#physicsMenu .rightControls i").addClass("hidden");
+      //$("#physicsMenu .rightControls").addclass("hidden");
+      //$("#physicsPlay").addClass("hidden");
+      //$("#physicsReset").addClass("hidden");
+      //$("#physicsPause").addClass("hidden");
       $("#physicsMenu img.selected").removeClass("selected");
       //Physicsb2.drawDebugData();
 
 
     }
+    
+    $("#physicsSettings").addClass("hidden");
   }
   
   function startWorld() {
@@ -325,6 +331,7 @@ Physics = (function() {
       $("#physicsPlay").removeClass("inactive");  
       $("#physicsPause").addClass("inactive");  
     }
+    $(".netlogo-canvas").off("keydown");
   }
 
   function patchToWorld(coords) {
