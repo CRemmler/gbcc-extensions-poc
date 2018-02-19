@@ -391,7 +391,7 @@
   display: none;
 }
 #physicsOn {
-  color: orange;
+  color: mediumpurple;
 }
 #physicsOff {
   color: gray;
@@ -402,7 +402,7 @@
   top: 0px;
 }
 #physicsContainer.selected {
-  border: 2px solid orange;
+  border: 2px solid mediumpurple;
 }
 #physicsContainer:not(.selected) {
   border: 2px solid #aaa;
@@ -410,18 +410,20 @@
   filter: grayscale(100%);
 }
 
-#physicsMenu:not(.selected) {
+#physicsMenu div:not(.selected) {
   -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
   filter: grayscale(100%);
 }
 
-#physicsMenu.selected img:hover {
+#physicsMenu img:not(.purple):hover {
   border: 2px solid yellow;
 }
 
+
 #physicsMenu.selected img.selected {
-  border: 2px solid orange;
+  border: 2px solid rebeccapurple;
 }
+
 
 /*
 #physicsMenu.selected i:hover {
@@ -503,7 +505,7 @@
 
 #physicsSettings {
   position: absolute; 
-  top: 420px; 
+  top: 415px; 
   background-color: #ccc; 
   //padding: 3px; 
   width: 100%; 
@@ -530,20 +532,25 @@
 #physicsMenu img {
   border: 2px solid gray;
   border-radius: 5px;
+  width: 30px;
+  height: 30px;
 }
 
 #physicsMenu i, #physicsSettings i {
-  border: 2px solid white;
+  border: 2px solid gray;
   width: 20px;
-  color: white;
-  background-color: rebeccapurple; //gray;
+  color: mediumpurple;
+  background-color: white; //gray;
   padding: 6px 3px 6px 3px;
-  border-radius: 5px;
+  border-radius: 50%;
   text-align: center;
 }
 
 #physicsMenu i:hover, #physicsSettings i:hover {
-  border: 2px solid yellow; //limegreen;
+  //border: 2px solid yellow; //limegreen;
+  color:white;
+  //background-color:rgb(214, 202, 250);;
+  background-color: mediumpurple;
 }
 
 #physicsMenu .leftControls, #physicsSettings .leftControls {
@@ -551,7 +558,7 @@
   white-space: nowrap;
   width: calc(100% - 125px);
   display: inline-block;
-  background-color: #ccc;
+  background-color: #eee;
   height: 33px;
   padding: 5px;
 }
@@ -560,7 +567,16 @@
   float: right;
   width: 105px;
   text-align: right;
-  background-color: #ccc;
+  background-color: #eee;
   height: 33px;
   padding: 5px;
 }
+
+#physicsSettings .rightControls {
+  width: 30px;
+}
+
+#physicsSettings .leftControls {
+  width: calc(100% - 50px);
+}
+
