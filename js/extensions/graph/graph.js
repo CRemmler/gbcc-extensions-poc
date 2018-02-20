@@ -156,7 +156,22 @@ Graph = (function() {
   }
   
   function getElements() {
-    return applet1.getAppletObject().getXML()
+    var results = [];
+    var result;
+    var body;
+    var allBodies = Physicsb2.getAllBodies();
+    for (obj in allBodies) {
+      body = allBodies[obj];
+      //result = body.GetAngle() / Math.PI * 180;
+      //if (result < 0) { result+= 360;}
+      //results.push(Math.round(result));
+      result = body.GetPosition();
+      results.push([ Math.round(result.x), Math.round(result.y) ]);
+    }
+    //console.log(results);
+    return results;
+
+    //return applet1.getAppletObject().getXML()
   }
 
   function removeGraph() {

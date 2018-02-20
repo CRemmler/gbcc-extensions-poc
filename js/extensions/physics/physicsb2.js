@@ -764,9 +764,10 @@ Physicsb2 = (function() {
   }
   
   function addTargetToBody(m) {
-    var id = m[0];
-    var bodyA = m[1];
-    var coords = m[2];
+    var id = m.id;
+    var bodyA = m.bodyA;
+    var coords = m.coords;
+    
   }
   
   function addDistanceJointToBody(m) {
@@ -832,16 +833,39 @@ Physicsb2 = (function() {
   ///////// FORCES IN WORLD
   
   function applyForce(m) {
-    var id = m[0];
+    /*var id = m[0];
     var bodyA = m[1];
     var coords = m[2];
     var heading = m[3];
-    var amount = m[4] * 10;
+    var amount = m[4] * 10;*/
+    var id, bodyA, coords, heading, amount, radians;
+    
+    id = null;
+    bodyA = m.bodyA;
+    coords = null;
+    coords = bodyObj[bodyA].GetWorldCenter();
+    heading = m.heading;
+    amount = m.force;
+    radians = degreestoradians(heading);
+    //bodyObj[bodyA].ApplyForce(
+    //  {x:roundToTenths(Math.cos(radians)*amount), y:roundToTenths(Math.sin(radians)*amount)}, 
+    //  new b2Vec2(roundToTenths(coords.x), roundToTenths(coords.y)) );
+  
+    for (body in bodyObj) {
+      b = bodyObj[body];
+      coords = b.GetWorldCenter();
+      b.ApplyForce(
+        {x:roundToTenths(Math.cos(radians)*amount), y:roundToTenths(Math.sin(radians)*amount)}, 
+        new b2Vec2(roundToTenths(coords.x), roundToTenths(coords.y)) );
+    }
+  
+      
+    /*
     var coordsA = nlogotobox2d(coords);
     var radians = degreestoradians(heading);
     bodyObj[bodyA].ApplyForce(
       {x:roundToTenths(Math.cos(radians)*amount), y:roundToTenths(Math.sin(radians)*amount)}, 
-      new b2Vec2(roundToTenths(coordsA[0]), roundToTenths(coordsA[1])) );
+      new b2Vec2(roundToTenths(coordsA[0]), roundToTenths(coordsA[1])) );*/
   }
   
   function applyLinearImpulse(m) {
@@ -961,8 +985,27 @@ Physicsb2 = (function() {
       var vertices;
       var tempHelperPoint, newVertices;
       var center;
+      var mode = Physics.getDrawButtonMode();
+      //console.log("mouse click");
+      if (mode === "drag" || mode === "group") {
+
       //universe.repaint();
       world.DrawDebugData(); 
+      if (arcDragged) {
+       
+       
+       
+       universe.repaint();
+       world.DrawDebugData(); 
+       //console.log(selectedFixture);
+       //console.log(selectedBody);
+       //createHelperPoints(selectedFixture);
+       drawHelperArc();
+       redrawWorld();
+     
+       $("#physicsSettings #angle").val(radianstodegrees(selectedBody.GetAngle())+180 );
+
+     } else {
       if (pointDragged != null) {// && mode === "drag") {
         //console.log(pointDragged);
         if (pointDragged.shape === "circle") {
@@ -1020,20 +1063,13 @@ Physicsb2 = (function() {
           createHelperPoints(selectedFixture);
           redrawWorld();
         } else {
+          createHelperArc();
+
           redrawWorld();
         }
-      } else if (arcDragged) {
-        
-        
-        
-        universe.repaint();
-        world.DrawDebugData(); 
-        
-        createHelperPoints(selectedFixture);
-        drawHelperArc();
-        redrawWorld();
       }
-
+    }
+    }
     };
 
    
@@ -1067,11 +1103,11 @@ Physicsb2 = (function() {
         redrawWorld();
         drawHelperPoints();
         
-        clearAllHelperLines(); 
+        //clearAllHelperLines(); 
 
-          createHelperLines("limegreen");
+        //  createHelperLines("limegreen");
           //redrawWorld();
-          createHelperArc();
+        //  createHelperArc();
 
      } else if (mode === "group") {
 
@@ -1084,6 +1120,8 @@ Physicsb2 = (function() {
          $("#physicsSettings .objectId").val(body.GetUserData().id);
          $("#physicsSettings #angle").val(body.GetAngle());
          $("#physicsSettings .objectType").val(body.GetType());
+          
+          /*
            if (prevSelectedBody && prevSelectedBody.GetUserData().id === selectedBody.GetUserData().id) {
              console.log("selected body was clicked again, remove "+ selectedFixture.GetUserData().id);
              
@@ -1130,6 +1168,8 @@ Physicsb2 = (function() {
              
                selectedBody = prevSelectedBody;
            }
+           
+           */
          //}
          //else {
          clearAllHelperLines(); 
@@ -1167,12 +1207,12 @@ Physicsb2 = (function() {
              mouseY = (event.clientY - canvasPosition.top) / SCALE * 2;
              bodyDragged.offset = {x: center.x - mouseX, y:center.y - mouseY};
              createHelperPoints(fixture);
-             clearAllHelperLines(); 
+             //clearAllHelperLines(); 
              //if (!$.isEmptyObject(bodyDragged)) {  
-             selectedBody = bodyDragged.body;
-             clearAllHelperLines();
-             createHelperLines("limegreen"); 
-             redrawWorld();
+            //   selectedBody = bodyDragged.body;
+          //     clearAllHelperLines();
+        //       createHelperLines("limegreen"); 
+               redrawWorld();
              //}
            } 
          }
@@ -1265,13 +1305,16 @@ Physicsb2 = (function() {
        //console.log(selectedBody);
        //console.log(bodyDragged);
        if (selectedBody) {
-         createHelperLines("(none)");
+        // createHelperLines("(none)");
          //createHelperPoints(selectedFixture);
+         createHelperLines("limegreen");
+         redrawWorld();
+         createHelperArc();
        }
         
      } else {
        drawHelperPoints();
-       createHelperArc();
+       //createHelperArc();
      }
      //drawHelperLines();
      pointDragged = null;

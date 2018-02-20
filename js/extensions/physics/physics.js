@@ -154,7 +154,10 @@ Physics = (function() {
         case "restitution": restitution = value; break;
         case "objects": objects = value; break;
         case "color": color = value; break;
+        case "bodyA": bodyA = value; break;
+        case "force": force = value; break;
       }
+            
     }
     if (typeof color === "object") {
       color = rgbToHex(color);
@@ -176,6 +179,14 @@ Physics = (function() {
         "parentId": name,
         "objects": objects 
       });
+    } else if (behavior === "target") {
+      
+      //physics:create-object "target" [ ["bodyA" "ball"] ["heading" angle ] [ "force" force]  ]
+      Physicsb2.applyForce({
+        "bodyA": bodyA,
+        "heading": heading,
+        "force": force
+      });
     } else {
       Physicsb2.createBody({
         "parentId": parentId, 
@@ -196,6 +207,15 @@ Physics = (function() {
         "fixtureId": name, 
         "bodyId": parentId, 
       });  
+      //Physicsb2.addTargetToBody({
+      //  "id": name+"-"+target,
+      //  "bodyA": parentId,
+      //  "coords": null
+      //});
+      
+      
+  
+        
     }
 
     Physicsb2.redrawWorld();
@@ -245,11 +265,20 @@ Physics = (function() {
   }
   
   function getObject(name) {
-    return ([]);
+    var results = [];
+    var body;
+    var allBodies = Physicsb2.getAllBodies();
+    for (obj in allBodies) {
+      body = allBodies[obj];
+      results.push(body.GetAngle());
+    }
+    console.log(results);
+    return results;
   }
   
   function getObjects() {
     //console.log("get objects");
+    /*
     var objectsList = [];
     var bodies = Physicsb2.getAllBodies();
     var object, name, settings, fixtures, fixtureType, bodyType, position, angle, radius;
@@ -280,7 +309,16 @@ Physics = (function() {
       if (fixtureType === "circle") {
         //console.log("radius: "+radius);
       }
+    }*/
+    var results = [];
+    var body;
+    var allBodies = Physicsb2.getAllBodies();
+    for (obj in allBodies) {
+      body = allBodies[obj];
+      results.push(body.GetAngle() * Math.PI );
     }
+    console.log(results);
+    return results;
   }
 
   function setupEventListeners() {
