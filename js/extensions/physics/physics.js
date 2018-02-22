@@ -67,7 +67,7 @@ Physics = (function() {
     spanText =  "<div id='physicsSettings' class='hidden'>";
     spanText += "  <div class='leftControls'>";//"<span id='shapeSettings'>";
     spanText += "    <div id='dragModeSettings'>";
-    spanText += "      Id: <input class='objectId' type='text'>";
+    spanText += "      ShapeId: <input class='objectId' type='text'>";
     spanText += "      Color: <select id='color'>";
     spanText += "        <option value='(none)'>(none)</option>";
     spanText += "        <option value='#ff000032'>red</option>";
@@ -78,15 +78,25 @@ Physics = (function() {
     spanText += "        <option value='#80008032'>purple</option>";
     spanText += "        <option value='(other)'>(other)</option>";
     spanText += "      </select>";
-    spanText += "      D:<input type='number' id='density'>";
-    spanText += "      R:<input type='number' id='restitution'>";
-    spanText += "      F:<input type='number' id='friction'>";
+    spanText += "      BodyId: <select class='bodyId'>";
+    spanText += "        <option></option>";
+    spanText += "      </select>";
+    //spanText += "      D:<input type='number' id='density'>";
+    //spanText += "      R:<input type='number' id='restitution'>";
+    //spanText += "      F:<input type='number' id='friction'>";
     spanText += "    </div>";
     spanText += "    <div id='groupModeSettings' class='in-line-block'>";
-    spanText += "      Id: <input class='objectId' type='text' value='123'>";
+    spanText += "      BodyId: <input class='objectId' type='text' value='123'>";
     spanText += "      Type:<select class='objectType' style='background-color:white'><option value='2'>Dynamic</option><option value='0'>Static</option><option value='1'>Ghost</option></select>";
     spanText += "      Angle:<input type='number' id='angle'>";
-    spanText += "    </div>"
+    spanText += "    </div>";
+    spanText += "    <div id='targetModeSettings' class='in-line-block'>";
+    spanText += "      TargetId: <input class='objectId' type='text' value='123'>";
+    spanText += "      BodyId: <select id='bodyId2'>";
+    spanText += "        <option></option>";
+    spanText += "      </select>";
+    spanText += "      <input type='checkbox' id='snap'> Snap";
+    spanText += "    </div>";
     spanText += "  </div>"; 
     spanText += "  <div class='rightControls'>";//"<span id='physicsTrash'>";
     spanText += "    <i class='fa fa-trash-o' id='physicsDelete' aria-hidden='true'></i>";
@@ -162,7 +172,8 @@ Physics = (function() {
     if (typeof color === "object") {
       color = rgbToHex(color);
     }
-    parentId = name+"parent";
+    //parentId = name+"body";
+    parentId = "body-" + Physicsb2.getTotalObjectsCreated();
     if (shape === "line") {
       bodyCoords = [ (coords[0][0] - -coords[1][0]), (coords[0][1] - -coords[1][1]) / 2 ];
       fixtureCoords = coords;
@@ -249,13 +260,13 @@ Physics = (function() {
   }
   
   function connectToObject(who, name) {
-    var parentId = name+"parent";
+    var parentId = name+"body";
     //console.log("connect to turtle "+parentId+" to " + who);
     Physicsb2.updateBodyId(parentId, who);
   }
   
   function disconnectFromObject(who, name) {
-    var parentId = name+"parent";
+    var parentId = name+"body";
     //console.log("connect to turtle "+parentId+" to " + who);
     Physicsb2.updateBodyId(who, parentId);
   }
