@@ -253,18 +253,18 @@ Physicsb2 = (function() {
         var pos = box2dtonlogo(b.GetPosition());
         //console.log(pos);
         var heading = radianstodegrees(b.GetAngle());
-        if (id != -1 && universe.model.turtles && universe.model.turtles[id]) {
-          universe.model.turtles[id].xcor = pos.x;
-          universe.model.turtles[id].ycor = pos.y;
-          universe.model.turtles[id].heading = heading;
-        }
+        //if (id != -1 && universe.model.turtles && universe.model.turtles[id]) {
+        //  universe.model.turtles[id].xcor = pos.x;
+        //  universe.model.turtles[id].ycor = pos.y;
+        //  universe.model.turtles[id].heading = heading;
+        //}
         
       } else if (b.GetType() == b2Body.b2_staticBody) {
-        var pos = box2dtonlogo(b.GetPosition());
-        if (id != -1 && universe.model.turtles && universe.model.turtles[id]) {
-          universe.model.turtles[id].xcor = pos.x;
-          universe.model.turtles[id].ycor = pos.y;
-        }
+        //var pos = box2dtonlogo(b.GetPosition());
+        //if (id != -1 && universe.model.turtles && universe.model.turtles[id]) {
+        //  universe.model.turtles[id].xcor = pos.x;
+        //  universe.model.turtles[id].ycor = pos.y;
+        //}
       }
     }
     //drawHelperPoints();
@@ -459,7 +459,7 @@ Physicsb2 = (function() {
     if (!targetObj[bodyId]) {
       targetObj[bodyId] = [];
     }
-    targetObj[bodyId].push({targetId: "target-"+totalObjectsCreated, coords: bodyObj[bodyId].GetPosition()});
+    targetObj[bodyId].push({targetId: "target-"+totalObjectsCreated, coords: bodyObj[bodyId].GetPosition(), bodyId: bodyId});
     //helperTargets.push({bodyId: bodyId, color: "white", coords: bodyObj[bodyId].GetPosition()})
 
     totalObjectsCreated++;
@@ -969,7 +969,7 @@ Physicsb2 = (function() {
    }
    
    function getTargetAtMouse() {
-     console.log("get target at mouse");
+     //console.log("get target at mouse");
      var smallestDistance = undefined;
      var d;
      var closestTarget = undefined;
@@ -987,7 +987,7 @@ Physicsb2 = (function() {
             helperTargets[i].color = "gray";
          }
        }
-       console.log("set it to BLUE");
+       //console.log("set it to BLUE");
        helperTargets[closestTarget].color = "blue";
        helperTargetDragged = helperTargets[closestTarget];
        drawHelperTargets();
@@ -1173,6 +1173,9 @@ Physicsb2 = (function() {
        var fixture = getFixtureAtMouse();
        if (target) {
          $("#physicsSettings .objectId").val(target.targetId);
+         clearAllHelperLines();
+         selectedBody = bodyObj[target.bodyId];
+         createHelperLines("limegreen");
        } else {
          if (body) {
            $("#physicsSettings").removeClass("hidden");//.css("display","inline-block");
@@ -1191,8 +1194,14 @@ Physicsb2 = (function() {
            }
            clearAllHelperLines(); 
            createHelperLines("limegreen");
+           console.log("draw helper targets 1");
            createHelperTargets();
+           //alert("draw helper targets");
+           
+           //drawHelperTargets();
            redrawWorld();
+           
+           //alert('not target, but yes body');
          }
        }
      } 
@@ -1300,12 +1309,17 @@ Physicsb2 = (function() {
          drawHelperPoints();
      }
      if (mode === "joint") {}
-     if (mode === "target") {}
+     if (mode === "target") {
+       clearAllHelperLines();
+       //redrawWorld();
+
+       
+     }
 
    }
    
    function handleMouseUp() {
-     //console.log("handle mouse up");
+     console.log("handle mouse up");
      for (var i=0; i<helperPoints.length; i++) {
        if (helperPoints[i].color != "white") {
           helperPoints[i].color = "white";
@@ -1315,17 +1329,16 @@ Physicsb2 = (function() {
      world.DrawDebugData();
      var mode = Physics.getDrawButtonMode();
      if (mode === "group") {
-       //console.log("mouse up");
-       //console.log(selectedBody);
-       //console.log(bodyDragged);
        if (selectedBody) {
-        // createHelperLines("(none)");
-         //createHelperPoints(selectedFixture);
          createHelperLines("limegreen");
          redrawWorld();
          createHelperArc();
        }
-        
+     } else if (mode === "target") {
+       if (selectedBody) {
+         createHelperLines("limegreen");
+         redrawWorld();
+       }
      } else {
        drawHelperPoints();
        //createHelperArc();
@@ -1497,6 +1510,8 @@ Physicsb2 = (function() {
   }
   
   function createHelperLines(color) {
+    console.log("create helper lines for");
+    console.log(selectedBody);
     var f = selectedBody.GetFixtureList();
     var userData = f.GetUserData();
     userData.strokeColor = color;
@@ -1512,7 +1527,7 @@ Physicsb2 = (function() {
   }
   
   function createHelperTargets() {
-    console.log("create helper targets gray");
+    //console.log("create helper targets gray");
     helperTargets = [];
     var targets = targetObj[selectedBody.GetUserData().id];
     for (var i=0; i<targets.length; i++) {
@@ -1523,7 +1538,7 @@ Physicsb2 = (function() {
   }
   
   function drawHelperTargets() {
-    console.log("draw helper targets, color");
+    //console.log("draw helper targets, color");
     var pointCoords, pixelCoords, color;
     for (var i=0; i<helperTargets.length; i++) {
       pointCoords = helperTargets[i].coords;
@@ -1573,7 +1588,7 @@ Physicsb2 = (function() {
   }
   
   function createHelperArc() {  
-    console.log("create helper arc");  
+    //console.log("create helper arc");  
     var center = selectedBody.GetPosition();
     pointCoords = center;
     pixelCoords = {x: pointCoords.x * SCALE, y: pointCoords.y * SCALE };
