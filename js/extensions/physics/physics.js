@@ -67,7 +67,7 @@ Physics = (function() {
     spanText =  "<div id='physicsSettings' class='hidden'>";
     spanText += "  <div class='leftControls'>";//"<span id='shapeSettings'>";
     spanText += "    <div id='dragModeSettings'>";
-    spanText += "      ShapeId: <input class='objectId' type='text'>";
+    spanText += "      ShapeId: <input id='shapeId' type='text'>";
     spanText += "      Color: <select id='color'>";
     spanText += "        <option value='(none)'>(none)</option>";
     spanText += "        <option value='#ff000032'>red</option>";
@@ -78,7 +78,7 @@ Physics = (function() {
     spanText += "        <option value='#80008032'>purple</option>";
     spanText += "        <option value='(other)'>(other)</option>";
     spanText += "      </select>";
-    spanText += "      BodyId: <select class='bodyId'>";
+    spanText += "      BodyId: <select id='bodyIdShapeMode'>";
     spanText += "        <option></option>";
     spanText += "      </select>";
     //spanText += "      D:<input type='number' id='density'>";
@@ -86,13 +86,13 @@ Physics = (function() {
     //spanText += "      F:<input type='number' id='friction'>";
     spanText += "    </div>";
     spanText += "    <div id='groupModeSettings' class='in-line-block'>";
-    spanText += "      BodyId: <input class='objectId' type='text' value='123'>";
+    spanText += "      BodyId: <input id='bodyId' type='text' value='123'>";
     spanText += "      Type:<select class='objectType' style='background-color:white'><option value='2'>Dynamic</option><option value='0'>Static</option><option value='1'>Ghost</option></select>";
     spanText += "      Angle:<input type='number' id='angle'>";
     spanText += "    </div>";
     spanText += "    <div id='targetModeSettings' class='in-line-block'>";
-    spanText += "      TargetId: <input class='objectId' type='text' value='123'>";
-    spanText += "      BodyId: <select id='bodyId2'>";
+    spanText += "      TargetId: <input class='targetId' type='text' value='123'>";
+    spanText += "      BodyId: <select id='bodyIdTargetMode'>";
     spanText += "        <option></option>";
     spanText += "      </select>";
     spanText += "      <input type='checkbox' id='snap'> Snap";
@@ -134,6 +134,101 @@ Physics = (function() {
     resetInterface();
   }
   
+  //physics:create-object "body-0" [ [ "type-of-object" "body"] ]
+  //physics:create-object "shape-0" [ ["type-of-object" "shape"] ["body-id" "body-0"] ]
+  function createObject(name, settings) {
+    var key, value;
+    var parentId;
+    
+    var angle = 0; 
+    var behavior = "dynamic";
+    var color = "(none)";
+    var coords = [0,0];
+    var coords = [0,0];
+    var density = 0.5;
+    var friction = 0.5;
+    var radius = 2;
+    var restitution = 0.5;
+    var typeOfObject = "body";
+    var typeOfShape = "circle";
+    var vertices = [[0,0], [2,2]];
+    
+    var bodyId;
+    var shapeId;
+    //var objects = [];
+    
+    var bodyCoords, fixtureCoords;
+    for (var i=0; i<settings.length; i++) {
+      key = settings[i][0];
+      value = settings[i][1];
+      switch ( key ) {
+        case "angle": angle = value; break;
+        case "behavior": behavior = value; break;
+        case "body-id": bodyId = value; break;
+        case "color": color = value; break;
+        //case "coords": coords = value; break;
+        case "coords": coords = value; break;
+        case "density": density = value; break;
+        case "friction": friction = value; break;
+        case "radius": radius = value; break;
+        case "restitution": restitution = value; break;
+        case "type-of-object": typeOfObject = value; break;
+        case "type-of-shape": typeOfShape = value; break;
+        case "vertices": vertices = value; break;
+      
+      }
+            
+    }
+    if (typeof color === "object") {
+      color = rgbToHex(color);
+    }
+    
+    if (typeOfObject === "body") {
+      bodyId = name;
+      Physicsb2.createBody({
+        "bodyId": bodyId, 
+        "behavior": behavior, 
+        "coords": coords, 
+        "angle": angle
+      });
+      Physicsb2.addBodyToWorld(bodyId);
+    } else if (typeOfObject === "shape") {
+      //coords = coordsRelative;
+      shapeId = name;
+      if (typeOfShape === "line") {
+        //bodyCoords = [ (coords[0][0] - -coords[1][0]), (coords[0][1] - -coords[1][1]) / 2 ];
+        //fixtureCoords = coords;
+        
+      }
+      if (typeOfShape === "circle") {
+        //bodyCoords = coords;
+        //coords = coordsRelative;
+        vertices = [ [ coords[0], coords[1]], [coords[0]+radius, coords[1]+radius ]];
+      }
+      if (typeOfShape === "polygon") {
+        //bodyCoords = coords;
+      }
+      Physicsb2.createFixture({
+        "shapeId": shapeId, 
+        "coords": coords, 
+        "vertices": vertices, 
+        "typeOfShape": typeOfShape, 
+        "density": density,
+        "friction": friction,
+        "restitution": restitution,
+        "color": color,
+        "radius": radius
+      });  
+      Physicsb2.addFixtureToBody({
+        "shapeId": shapeId, 
+        "bodyId": bodyId, 
+      });  
+    }
+    Physicsb2.redrawWorld();
+  }
+  
+  
+  /*
   function createObject(name, settings) {
     var key, value;
     var parentId;
@@ -231,7 +326,7 @@ Physics = (function() {
 
     Physicsb2.redrawWorld();
     
-  }
+  }*/
   
   function rgbToHex(color) {
     var result;
@@ -259,6 +354,7 @@ Physics = (function() {
     return "#"+result;
   }
   
+  /*
   function connectToObject(who, name) {
     var parentId = name+"body";
     //console.log("connect to turtle "+parentId+" to " + who);
@@ -269,7 +365,7 @@ Physics = (function() {
     var parentId = name+"body";
     //console.log("connect to turtle "+parentId+" to " + who);
     Physicsb2.updateBodyId(who, parentId);
-  }
+  }*/
   
   function removeObject(name) {
     return ([]);
@@ -376,19 +472,21 @@ Physics = (function() {
     assignSettings("density");
     assignSettings("restitution");
     assignSettings("friction");
-    assignSettings("objectId");
+    assignSettings("shapeId");
+    assignSettings("bodyIdShapeMode");
     
 
   }
   
   function assignSettings(setting) {
     $("#physicsSettings .leftControls").on("change", "#"+setting, function () {
+      
       console.log("setting " + setting + " changed");
       console.log($(this).val());
       var value = $(this).val();
-      var fixtureId = $(".objectId").val();
-      if (["color","density","restitution","friction"].indexOf(setting) > -1) {
-        Physicsb2.updateFixture(fixtureId, setting, value);
+      var fixtureId = $("#shapeId").val();
+      if (["color","density","restitution","friction","shapeId","bodyIdShapeMode"].indexOf(setting) > -1) {
+        Physicsb2.updateFixture(null, setting, value);
       }
     });
   }
@@ -487,8 +585,8 @@ Physics = (function() {
     importPhysics: importPhysics,
     createObject: createObject,
     removeObject: removeObject,
-    connectToObject: connectToObject,
-    disconnectFromObject: disconnectFromObject,
+    //connectToObject: connectToObject,
+    //disconnectFromObject: disconnectFromObject,
     getObject: getObject,
     getObjects: getObjects,
     setupInterface: setupInterface,

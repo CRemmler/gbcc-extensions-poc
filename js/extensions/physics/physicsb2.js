@@ -12,6 +12,7 @@ Physicsb2 = (function() {
   var helperLines = [];
   var helperArc = {};
   var helperTargets = [];
+  //var helperDots = {};
   var draggerPoints = [];
   var fillShapes = [];
    // get ready to capture mouse events
@@ -28,7 +29,7 @@ Physicsb2 = (function() {
   var bodyDragged = null;
   var canvas = null;
   var ctx = null;
-  //var grabPointDragged = null;
+  var grabPointDragged = null;
   var totalObjectsCreated;
   
   var   b2Vec2 = Box2D.Common.Math.b2Vec2
@@ -104,11 +105,11 @@ Physicsb2 = (function() {
     return ({x: nlogoLeftAbsolute, y: nlogoTopAbsolute});
   };
   
-  function radianstodegrees(angle) {
+  function radiansToDegrees(angle) {
     return angle / 2 / Math.PI * 360;
   }
   
-  function degreestoradians(angle) {
+  function degreesToRadians(angle) {
     return angle * 2 * Math.PI / 360;
   }
   
@@ -196,7 +197,7 @@ Physicsb2 = (function() {
                 posVector.x = pos[0];
                 posVector.y = pos[1];
                 b.SetPosition(posVector);
-                var heading = degreestoradians(universe.model.turtles[id].heading);
+                var heading = degreesToRadians(universe.model.turtles[id].heading);
                 //b.SetTransform(b.GetPosition(), heading);
                 b.SetAngle(heading);
               }
@@ -252,7 +253,7 @@ Physicsb2 = (function() {
         
         var pos = box2dtonlogo(b.GetPosition());
         //console.log(pos);
-        var heading = radianstodegrees(b.GetAngle());
+        var heading = radiansToDegrees(b.GetAngle());
         //if (id != -1 && universe.model.turtles && universe.model.turtles[id]) {
         //  universe.model.turtles[id].xcor = pos.x;
         //  universe.model.turtles[id].ycor = pos.y;
@@ -322,10 +323,12 @@ Physicsb2 = (function() {
   
   function redrawWorld() {
     if (world) {
+      console.log("redraw world");
       var body, bodyCenter, bodyId, bodyCenter, shape, color;
       var fixture;
       for (f in fixtureObj) {
         fixture = fixtureObj[f];
+        //console.log(fixture);
         body = fixture.GetBody();
         bodyCenter = body.GetPosition();
         bodyId = body.GetUserData().id;
@@ -333,21 +336,18 @@ Physicsb2 = (function() {
         shape = fixture.GetUserData().shape;
         fillColor = fixture.GetUserData().fillColor;
         strokeColor = fixture.GetUserData().strokeColor;
+        shapeId = fixture.GetUserData().id;
         //if (fillColor != "(none)") {
           ctx.beginPath();
-          //console.log("COLOR "+fillColor);
           ctx.fillStyle = fillColor;
           ctx.strokeStyle = strokeColor;
-          //console.log("stroke color"+strokeColor);
           ctx.lineWidth=5;
           if (shape === "circle") {
-            //console.log(fixture);
             radius = fixture.GetShape().GetRadius();
             localPosition = fixture.GetShape().GetLocalPosition();
-            pointCoords = { x:(bodyCenter.x- -localPosition.x), y:(bodyCenter.y - -localPosition.y)};
-            pointCoords = {x:(pointCoords.x - -radius), y:pointCoords.y};
+            pointCoords = body.GetWorldPoint(localPosition);
             pixelCoords = {x: pointCoords.x * SCALE, y: pointCoords.y * SCALE };
-            ctx.arc(pixelCoords.x - radius * SCALE, pixelCoords.y, radius * SCALE, 0, Math.PI * 2, true); // Outer circle
+            ctx.arc(pixelCoords.x, pixelCoords.y, radius * SCALE, 0, Math.PI * 2, true); // Outer circle
           } else if (shape === "polygon") {
             fixturePoints = fixture.GetShape().GetVertices();
             ctx.lineWidth=5;
@@ -361,22 +361,26 @@ Physicsb2 = (function() {
             }
             ctx.closePath();
           } else if (shape === "line") {
+            //console.log("15 line");
             fixturePoints = fixture.GetShape().GetVertices();
             ctx.lineWidth=5;
-            pointCoords = body.GetWorldPoint(fixturePoints[0]);
-            pixelCoords = {x: pointCoords.x * SCALE, y: pointCoords.y * SCALE };
-            ctx.moveTo(pixelCoords.x, pixelCoords.y);
-            pointCoords = body.GetWorldPoint(fixturePoints[1]);
-            pixelCoords = {x: pointCoords.x * SCALE, y: pointCoords.y * SCALE };
-            ctx.lineTo(pixelCoords.x, pixelCoords.y);
+            pointCoords0 = body.GetWorldPoint(fixturePoints[0]);
+            pixelCoords0 = {x: pointCoords0.x * SCALE, y: pointCoords0.y * SCALE };
+            ctx.moveTo(pixelCoords0.x, pixelCoords0.y);
+            pointCoords1 = body.GetWorldPoint(fixturePoints[1]);
+            pixelCoords1 = {x: pointCoords1.x * SCALE, y: pointCoords1.y * SCALE };
+            ctx.lineTo(pixelCoords1.x, pixelCoords1.y);
+            //ctx.stroke();
+            //createHelperDot({"shapeId":shapeId, "pointsList": [pixelCoords0, pixelCoords1] });
+            //drawHelperDots();
           }
           if (fillColor != "(none)") { ctx.fill(); }
           if (strokeColor != "(none)") { ctx.stroke(); }
         //}
       }
+      //drawHelperDots();
       
-      
-      //drawHelperPoints();
+
     }
   }
         
@@ -399,13 +403,11 @@ Physicsb2 = (function() {
         
   function createBody(m) {
     console.log("CREATE BODY", m);
-    var bodyId = m.parentId;
+    var bodyId = m.bodyId;
     var behavior = m.behavior;
-    var bodyA = m.parentId;
-    var nlogoCoords = m.bodyCoords;
-    var angle = m.heading;
+    var nlogoCoords = m.coords;
+    var angle = m.angle;
     box2dCoords = m.box2dCoords ? box2dCoords : nlogotobox2d(nlogoCoords);
-    //var box2dCoords = nlogotobox2d(nlogoCoords);
     var bodyDef = new b2BodyDef;
     bodyDef.userData = {
       id: bodyId,
@@ -424,13 +426,20 @@ Physicsb2 = (function() {
         bodyDef.userData.ghost = true;
         break;
     }
-    bodyDef.angle = degreestoradians(angle);
+    bodyDef.angle = degreesToRadians(angle);
     bodyDef.position.x = roundToTenths(box2dCoords[0]);
     bodyDef.position.y = roundToTenths(box2dCoords[1]);
-    //console.log(bodyDef.position);
     bodyDefObj[bodyId] = bodyDef;
   }
   
+  function addBodyToWorld(bodyId) {
+    console.log("ADD BODY TO WORLD "+bodyId);
+    bodyObj[bodyId] = world.CreateBody(bodyDefObj[bodyId]);
+    console.log('after');
+    totalObjectsCreated++;
+  }
+  
+  /*
   function addBodyToWorld(currentBodyId, newBodyId) {
     console.log("ADD BODY TO WORLD "+currentBodyId+" "+newBodyId);
     if (currentBodyId === newBodyId) {
@@ -465,7 +474,7 @@ Physicsb2 = (function() {
     totalObjectsCreated++;
     
     
-  }
+  }*/
   
   function deleteBody(bodyId) {
     console.log("DELETE BODY "+bodyId);
@@ -618,7 +627,7 @@ Physicsb2 = (function() {
         point.x = point.x + offset.x;
         point.y = point.y + offset.y;
         fixture.GetShape().SetLocalPosition(point);
-      } else if (shape === "edge" || shape === "polygon") {
+      } else if (shape === "line" || shape === "polygon") {
         vertices = fixture.GetShape().GetVertices();
         newVertices = [];
         for (var h=0; h<vertices.length; h++) {
@@ -661,10 +670,8 @@ Physicsb2 = (function() {
   }
   
   function addFixtureToBody(m) {
-    var fixtureId = m.fixtureId;
+    var fixtureId = m.shapeId;
     var bodyId = m.bodyId;
-    
-    console.log("ADD "+fixtureId+" to "+bodyId);
     var fixDef = fixDefObj[fixtureId];
     if (bodyObj[bodyId].GetUserData().ghost) {
       fixDef.filter.groupIndex = -1;
@@ -673,9 +680,6 @@ Physicsb2 = (function() {
     var coords = fixDef.userData.coords;
     var offsetX = bodyObj[bodyId].GetPosition().x;
     var offsetY = bodyObj[bodyId].GetPosition().y;
-    //console.log("shape "+shape);
-    //console.log("offset "+offsetX+" "+offsetY);
-    //console.log("coords "+coords);
     if (shape === "circle") {
       fixDef.shape.SetLocalPosition(
         new b2Vec2(roundToTenths(coords[0][0] - offsetX), roundToTenths(coords[0][1] - offsetY)),
@@ -684,16 +688,23 @@ Physicsb2 = (function() {
       fixDef.shape.SetAsEdge(
         new b2Vec2(roundToTenths(coords[0][0] - offsetX), roundToTenths(coords[0][1] - offsetY)),
         new b2Vec2(roundToTenths(coords[1][0] - offsetX), roundToTenths(coords[1][1] - offsetY)));
+        //var v1 = new b2Vec2(roundToTenths(coords[0][0] - offsetX), roundToTenths(coords[0][1] - offsetY));
+        //var v2 = new b2Vec2(roundToTenths(coords[1][0] - offsetX), roundToTenths(coords[1][1] - offsetY));
+        //var vertices = [v1, v2];
+        
+        //console.log("creating line", vertices);
+        //fixDef.shape.SetAsArray(vertices, 2);
+        
     } else if (shape === "polygon") {
       var vertices = [];
       for (var i=coords.length-1;i>=0;i--){
         vertices.push(new b2Vec2(roundToTenths(coords[i][0] - offsetX), roundToTenths(coords[i][1] - offsetY)))
       }
+      console.log("creating polygon", vertices);
       fixDef.shape.SetAsArray(vertices,vertices.length);
     }
     var firstObj = (bodyObj[bodyId].GetFixtureList() === null) ? true : false;
     bodyObj[bodyId].CreateFixture(fixDef);
-    
     //save the fixture in fixtureObj
     var f = bodyObj[bodyId].GetFixtureList();
     var fixture;
@@ -708,11 +719,10 @@ Physicsb2 = (function() {
     if (!firstObj) { updateBodyPosition(bodyId); }
   }
   
-  //Physicsb2.updateFixture("ball","density",0.1);
-  //Physicsb2.updateFixture("ball","friction",0.1);
-  //Physicsb2.updateFixture("ball","restitution",0.1);
-  //Physicsb2.updateFixture("ball","color","#ffff00");
   function updateFixture(fixtureId, key, value) {
+    if (fixtureId === null) {
+      fixtureId = selectedFixture.GetUserData().id;
+    } 
     var fixture = fixtureObj[fixtureId];
     switch (key) {
       case "color":
@@ -730,32 +740,93 @@ Physicsb2 = (function() {
       case "density":
         fixture.SetRestitution(value);
         break;
+      case "shapeId":
+        fixture.GetUserData().id = value;
+        fixDefObj[value] = fixDefObj[fixtureId];
+        delete fixDefObj[fixtureId];
+        fixtureObj[value] = fixtureObj[fixtureId];
+        delete fixtureObj[fixtureId];
+        break;
+      case "bodyIdShapeMode": 
+        //console.log("change body id");
+        var newBodyId = value;
+        if (!bodyObj[value]) {
+          newBodyId = "body-"+totalObjectsCreated;
+          //console.log("goes to a new body");
+          var bodyId = fixture.GetBody().GetUserData().id;
+        //console.log("COPY body from "+bodyId+" "+newBodyId);
+          var body = bodyObj[bodyId];
+          //console.log(body.GetPosition());
+          var coords = [body.GetPosition().x, body.GetPosition().y ];
+          var bodyType = body.GetType();
+          var behavior = (bodyType === 0) ? "static" : (bodyType === 1) ? "ghost" : "dynamic";
+          createBody({
+            "bodyId": newBodyId, 
+            "behavior": behavior, 
+            "box2dCoords": coords,
+            "angle": body.GetAngle()
+          });
+          addBodyToWorld(newBodyId);
+        } 
+        //console.log("remove it from current body");
+        //bodyObj[bodyId].DestroyFixture(fixDefObj[fixtureId]);
+        var body = fixtureObj[fixtureId].GetBody();
+        var f = body.GetFixtureList();
+        if (f.GetUserData().id === fixtureId) { 
+           body.DestroyFixture(f); 
+        } else {
+          while (f.GetNext()) {
+            f = f.GetNext();
+            if (f.GetUserData().id === fixtureId) { body.DestroyFixture(f); console.log("destroy"+fixtureId); break;}
+          }
+        } 
+        
+        //console.log("add it to new body");
+        //console.log("add to "+newBodyId);
+        //console.log(fixDefObj[fixtureId]);
+        bodyObj[newBodyId].CreateFixture(fixDefObj[fixtureId]);
+        var f = bodyObj[newBodyId].GetFixtureList();
+        var fixture2;
+        //console.log(f);
+        //console.log(f.GetUserData());
+        if (f.GetUserData().id === fixtureId) { fixture2 = f; }
+        while (f.GetNext()) {
+            if (f.GetUserData().id === fixtureId) { fixture2 = f; }
+            f = f.GetNext();
+        }
+        fixtureObj[fixtureId] = fixture2;
+        
+        break;
     }
-    
     redrawWorld();
-    redrawHelperPoints();
+    drawHelperPoints();
   }
   
   function createFixture(m) {
-    var fixtureId = m.name;
+    console.log("CREATE FIXTURE",m);
+    var shapeId = m.shapeId;
     //var bodyA = m.parentId;
-    var nlogoCoords = m.bodyCoords;
+    var nlogoCoords = m.coords;
     var box2dCoords = nlogotobox2d(nlogoCoords);
-    var nlogoFixtureCoords = m.fixtureCoords;
-    var shape = m.shape;
-    var settings = m.settings;
+    var nlogoFixtureCoords = m.vertices;
+    var shape = m.typeOfShape;
+    var density = m.density;
+    var friction = m.friction;
+    var restitution = m.restitution;
     var color = m.color;
     var box2dFixtureCoords = [];
+    var radius = m.radius;
     for (let coord of nlogoFixtureCoords) {
       box2dFixtureCoords.push(nlogotobox2d(coord));  
     }
     var fixDef = new b2FixtureDef;
     var fixture;
-    fixDef.density = settings[0];
-    fixDef.friction = settings[1];
-    fixDef.restitution = settings[2];
+    console.log('a');
+    fixDef.density = density;
+    fixDef.friction = friction;
+    fixDef.restitution = restitution;
     fixDef.userData = {
-      id: fixtureId,
+      id: shapeId,
       shape: shape,
       coords: box2dFixtureCoords,
       fillColor: color,
@@ -767,13 +838,18 @@ Physicsb2 = (function() {
       fixDef.shape = new b2CircleShape();
       fixDef.shape.SetRadius(distance);
     } else if (shape === "line") {
-      fixDef.shape = new b2PolygonShape;
-    } else {
+      fixDef.shape = new b2PolygonShape();
+      //console.log(box2dFixtureCoords);
+      //createHelperDot({"shapeId":shapeId, "pointsList": box2dFixtureCoords});
+      //drawHelperDots();
+    } else if (shape === "polygon") {
       fixDef.shape = new b2PolygonShape(); 
     }
-    
-    fixDefObj[fixtureId] = fixDef;
+    console.log('b');
+    fixDefObj[shapeId] = fixDef;
   }
+  
+
   
   function addTargetToBody(m) {
     var id = m.id;
@@ -858,7 +934,7 @@ Physicsb2 = (function() {
     coords = bodyObj[bodyA].GetWorldCenter();
     heading = m.heading;
     amount = m.force;
-    radians = degreestoradians(heading);
+    radians = degreesToRadians(heading);
     //bodyObj[bodyA].ApplyForce(
     //  {x:roundToTenths(Math.cos(radians)*amount), y:roundToTenths(Math.sin(radians)*amount)}, 
     //  new b2Vec2(roundToTenths(coords.x), roundToTenths(coords.y)) );
@@ -874,7 +950,7 @@ Physicsb2 = (function() {
       
     /*
     var coordsA = nlogotobox2d(coords);
-    var radians = degreestoradians(heading);
+    var radians = degreesToRadians(heading);
     bodyObj[bodyA].ApplyForce(
       {x:roundToTenths(Math.cos(radians)*amount), y:roundToTenths(Math.sin(radians)*amount)}, 
       new b2Vec2(roundToTenths(coordsA[0]), roundToTenths(coordsA[1])) );*/
@@ -887,7 +963,7 @@ Physicsb2 = (function() {
     var heading = m[3];
     var amount = m[4] * 50;
     var coordsA = nlogotobox2d(coords);
-    var radians = degreestoradians(heading);
+    var radians = degreesToRadians(heading);
     bodyObj[bodyA].ApplyImpulse(
       {x:Math.cos(radians)*amount, y:Math.sin(radians)*amount}, 
       new b2Vec2(roundToTenths(coordsA[0]), roundToTenths(coordsA[1])) );
@@ -922,8 +998,8 @@ Physicsb2 = (function() {
    function getBodyAtMouse() {
      mousePVec = new b2Vec2(mouseX, mouseY);
      var aabb = new b2AABB();
-     aabb.lowerBound.Set(mouseX - 0.05, mouseY - 0.05);
-     aabb.upperBound.Set(mouseX + 0.05, mouseY + 0.05);
+     aabb.lowerBound.Set(mouseX - 0.25, mouseY - 0.25);
+     aabb.upperBound.Set(mouseX + 0.25, mouseY + 0.25);
      selectedBody = null;
      world.QueryAABB(getBodyCB, aabb);
      return selectedBody;
@@ -934,8 +1010,8 @@ Physicsb2 = (function() {
      var aabb = new b2AABB();
      //aabb.lowerBound.Set(mouseX - 0.001, mouseY - 0.001);
      //aabb.upperBound.Set(mouseX + 0.001, mouseY + 0.001);
-     aabb.lowerBound.Set(mouseX - 0.05, mouseY - 0.05);
-     aabb.upperBound.Set(mouseX + 0.05, mouseY + 0.05);
+     aabb.lowerBound.Set(mouseX - 0.368, mouseY - 0.368);
+     aabb.upperBound.Set(mouseX + 0.368, mouseY + 0.368);
      selectedFixture = null;
      world.QueryAABB(getFixtureCB, aabb);
      return selectedFixture;
@@ -953,6 +1029,7 @@ Physicsb2 = (function() {
          closestPoint = j;
        }
      }
+     console.log("smallest distance", smallestDistance);
      if (smallestDistance < 1) {
        for (var i=0; i<helperPoints.length; i++) {
          if (i != closestPoint) {
@@ -987,7 +1064,6 @@ Physicsb2 = (function() {
             helperTargets[i].color = "gray";
          }
        }
-       //console.log("set it to BLUE");
        helperTargets[closestTarget].color = "blue";
        helperTargetDragged = helperTargets[closestTarget];
        drawHelperTargets();
@@ -996,6 +1072,38 @@ Physicsb2 = (function() {
        return null;
      }
    }
+   
+   /*function getDotAtMouse() {
+     console.log("get dot at mouse");
+     console.log(helperDots);
+     var smallestDistance = undefined;
+     var d;
+     var closestDot = undefined;
+     for (var j in helperDots) {
+       console.log(helperDots[j]);
+       d = distanceBetweenCoordsAndMouse(helperDots[j].coords);
+       console.log("d",d);
+       if (smallestDistance === undefined) {smallestDistance = d; closestDot = j;}
+       else if ( smallestDistance > d) {
+         smallestDistance = d;
+         closestDot = j;
+       }
+     }
+     console.log("smallest distance", smallestDistance);
+     if (smallestDistance < 1) {
+       for (var i in helperDots) {
+         if (i != closestDot) {
+            helperDots[i].color = "gray";
+         }
+       }
+       helperDots[closestDot].color = "yellow";
+       helperDotDragged = helperDots[closestDot];
+       drawHelperDots();
+       return helperDots[closestDot];
+     } else {
+       return null;
+     }
+   }*/
    
    function getArcAtMouse() {
      //console.log("get arc at mouse");
@@ -1017,6 +1125,12 @@ Physicsb2 = (function() {
    
    function getFixtureCB(fixture) {
      selectedFixture = fixture;
+
+     if(fixture.GetShape().TestPoint(fixture.GetBody().GetTransform(), mousePVec)) {
+         selectedFixture = fixture;
+         return false;
+     }
+     //selectedFixture = fixture;
      return true;
    }
    
@@ -1029,34 +1143,25 @@ Physicsb2 = (function() {
       var mode = Physics.getDrawButtonMode();
       //console.log("mouse click");
       if (mode === "drag" || mode === "group") {
-
       //universe.repaint();
       world.DrawDebugData(); 
       if (arcDragged) {
-       
-       
-       
        universe.repaint();
        world.DrawDebugData(); 
-       //console.log(selectedFixture);
-       //console.log(selectedBody);
-       //createHelperPoints(selectedFixture);
        drawHelperArc();
        redrawWorld();
-     
-       $("#physicsSettings #angle").val(Math.round(radianstodegrees(selectedBody.GetAngle())+180 ));
-
+       $("#physicsSettings #angle").val(Math.round(radiansToDegrees(selectedBody.GetAngle())+180 ));
      } else {
-      if (pointDragged != null) {// && mode === "drag") {
-        //console.log(pointDragged);
+      if (pointDragged != null) {
         if (pointDragged.shape === "circle") {
-          helperPoints[0].coords.x = mouseX;
-          helperPoints[0].coords.y = mouseY;
-          helperPoints[0].pixelCoords.x = mouseX * SCALE;
-          helperPoints[0].pixelCoords.y = mouseY * SCALE;
-          center = Physicsb2.getBodyObj(pointDragged.bodyId).GetPosition();
-          selectedFixture.GetShape().SetRadius(distanceBetweenCoordsAndMouse(center));
-          Physicsb2.getBodyObj(pointDragged.bodyId).SetAngle(0);
+          helperPoints[pointDragged.fixtureIndex].coords.x = mouseX;
+          helperPoints[pointDragged.fixtureIndex].coords.y = mouseY;
+          helperPoints[pointDragged.fixtureIndex].pixelCoords.x = mouseX * SCALE;
+          helperPoints[pointDragged.fixtureIndex].pixelCoords.y = mouseY * SCALE;
+          var localCenter = selectedFixture.GetShape().GetLocalPosition();
+          var absoluteCenter = bodyObj[pointDragged.bodyId].GetWorldPoint(localCenter);
+          var radius = distanceBetweenCoordsAndMouse(absoluteCenter);
+          selectedFixture.GetShape().SetRadius(radius);
           universe.repaint();
           world.DrawDebugData(); 
           drawHelperPoints();
@@ -1066,13 +1171,13 @@ Physicsb2 = (function() {
           helperPoints[pointDragged.fixtureIndex].coords.y = mouseY;
           helperPoints[pointDragged.fixtureIndex].pixelCoords.x = mouseX * SCALE;
           helperPoints[pointDragged.fixtureIndex].pixelCoords.y = mouseY * SCALE;
-          newVertices = [];
-          center = Physicsb2.getBodyObj(pointDragged.bodyId).GetPosition();
-          for (var p=0; p<helperPoints.length; p++) {
-            newVertices.push(new b2Vec2(helperPoints[p].coords.x - center.x, helperPoints[p].coords.y - center.y)); 
-          }
-          selectedFixture.GetShape().SetAsArray(newVertices, newVertices.length);
-          Physicsb2.getBodyObj(pointDragged.bodyId).SetAngle(0);
+          var vertices = selectedFixture.GetShape().GetVertices();
+          var absolutePoint = new b2Vec2();
+          absolutePoint.x = helperPoints[pointDragged.fixtureIndex].coords.x;
+          absolutePoint.y = helperPoints[pointDragged.fixtureIndex].coords.y;
+          var newVertex = bodyObj[pointDragged.bodyId].GetLocalPoint(absolutePoint);
+          vertices[pointDragged.fixtureIndex] = newVertex;
+          selectedFixture.GetShape().SetAsArray(vertices, vertices.length);
           universe.repaint();
           world.DrawDebugData(); 
           drawHelperPoints();
@@ -1080,15 +1185,21 @@ Physicsb2 = (function() {
         } else if (pointDragged.shape === "line") {
           helperPoints[pointDragged.fixtureIndex].coords.x = mouseX;
           helperPoints[pointDragged.fixtureIndex].coords.y = mouseY;
-          
           helperPoints[pointDragged.fixtureIndex].pixelCoords.x = mouseX * SCALE;
           helperPoints[pointDragged.fixtureIndex].pixelCoords.y = mouseY * SCALE;
-          newVertices = [];
-          center = Physicsb2.getBodyObj(pointDragged.bodyId).GetPosition();
-          selectedFixture.GetShape().SetAsEdge(
-            new b2Vec2(roundToTenths(helperPoints[0].coords.x - center.x), roundToTenths(helperPoints[0].coords.y - center.y)),
-            new b2Vec2(roundToTenths(helperPoints[1].coords.x - center.x), roundToTenths(helperPoints[1].coords.y - center.y)));
-          Physicsb2.getBodyObj(pointDragged.bodyId).SetAngle(0);
+          var vertices = selectedFixture.GetShape().GetVertices();
+          
+          var absolutePoint = new b2Vec2();
+          absolutePoint.x = helperPoints[pointDragged.fixtureIndex].coords.x;
+          absolutePoint.y = helperPoints[pointDragged.fixtureIndex].coords.y;
+          var newVertex = bodyObj[pointDragged.bodyId].GetLocalPoint(absolutePoint);
+          vertices[pointDragged.fixtureIndex] = newVertex;
+          //selectedFixture.GetShape().SetAsArray(vertices, vertices.length);
+          
+          
+          selectedFixture.GetShape().SetAsEdge(vertices[0], vertices[1]);
+
+
           universe.repaint();
           world.DrawDebugData(); 
           drawHelperPoints();
@@ -1105,7 +1216,6 @@ Physicsb2 = (function() {
           redrawWorld();
         } else {
           createHelperArc();
-
           redrawWorld();
         }
       }
@@ -1117,38 +1227,54 @@ Physicsb2 = (function() {
    function handleMouseClick() {
      console.log("handle mouse click");
      var mode = Physics.getDrawButtonMode();
-     console.log(mode);
+     //console.log(mode);
      if (mode === "drag") {
+       
+       //console.log("no fixture");
+       //console.log(selectedFixture);
+       if (!selectedFixture) {
+         //console.log("clear helper points");
+         clearAllHelperPoints();
+         $("#physicsSettings").addClass("hidden");
+       }
+       
+        //console.log("mouse click");;
+       
         var fixture = getFixtureAtMouse();
+        //console.log(fixture);
         if (fixture) {
           $("#physicsSettings").removeClass("hidden");//.css("display","inline-block");
           $("#groupModeSettings").addClass("hidden");
           $("#dragModeSettings").removeClass("hidden");//.css("display","inline-block");
           $("#targetModeSettings").addClass("hidden");
-          $("#physicsSettings .objectId").val(fixture.GetUserData().id);
+          $("#physicsSettings #shapeId").val(fixture.GetUserData().id);
           $("#physicsSettings #density").val(fixture.GetDensity());
           $("#physicsSettings #restitution").val(fixture.GetRestitution());
           $("#physicsSettings #friction").val(fixture.GetFriction());
           var bodyId = fixture.GetBody().GetUserData().id;
           var b;
-          $(".bodyId").html("");
+          $("#bodyIdShapeMode").html("");
           for (var b in bodyObj) {
             if (bodyId === b) {
-                $('.bodyId').append("<option value="+b+" selected='selected'>"+b+"</option>");
+                $('#bodyIdShapeMode').append("<option value="+b+" selected='selected'>"+b+"</option>");
             } else {
-              $('.bodyId').append("<option value="+b+">"+b+"</option>");
+              $('#bodyIdShapeMode').append("<option value="+b+">"+b+"</option>");
             }
           }
+          $('#bodyIdShapeMode').append("<option value='new'>new</option>");
+
           var color = fixture.GetUserData().fillColor;
           if (["(none)","#ff000032","#ffa50032","#ffff0032","#00ff0032","#0000ff32","#80008032"].indexOf(color) < 0) {
             $("#physicsSettings #color").val("(other)");
           } else {
             $("#physicsSettings #color").val(color);
           }
+          $("#shapeId").val(fixture.GetUserData().id);
           createHelperPoints(fixture);
-        } else {
-          $("#physicsSettings").addClass("hidden");
-        }
+        } 
+        universe.repaint();
+        world.DrawDebugData(); 
+
         redrawWorld();
         drawHelperPoints();
      } else if (mode === "group") {
@@ -1194,7 +1320,7 @@ Physicsb2 = (function() {
            }
            clearAllHelperLines(); 
            createHelperLines("limegreen");
-           console.log("draw helper targets 1");
+           //console.log("draw helper targets 1");
            createHelperTargets();
            //alert("draw helper targets");
            
@@ -1220,6 +1346,7 @@ Physicsb2 = (function() {
         if (!arcDragged) {
           pointDragged = getPointAtMouse();
           if (pointDragged === null) {
+            console.log("mouse down");
            fixture = getFixtureAtMouse();
            if (fixture!= null) {
              bodyDragged = {};
@@ -1271,6 +1398,7 @@ Physicsb2 = (function() {
      } 
      if (mode === "line") {
        coords = box2dtonlogo({x:mouseX, y:mouseY});
+       
        Physics.createObject("shape-"+totalObjectsCreated, [ 
          ["behavior", "static"], 
          ["shape", "line"], 
@@ -1339,8 +1467,12 @@ Physicsb2 = (function() {
          createHelperLines("limegreen");
          redrawWorld();
        }
-     } else {
+     } if (mode === "drag") {
+    
+       console.log("mouse up");
+       console.log(helperPoints.length);
        drawHelperPoints();
+       redrawWorld();
        //createHelperArc();
      }
      //drawHelperLines();
@@ -1429,11 +1561,18 @@ Physicsb2 = (function() {
     //console.log("shape",shape);
     if (shape === "circle") {
       radius = fixture.GetShape().GetRadius();
-      localPosition = fixture.GetShape().GetLocalPosition();
-      pointCoords = { x:(bodyCenter.x- -localPosition.x), y:(bodyCenter.y - -localPosition.y)};
-      pointCoords = {x:(pointCoords.x - -radius), y:pointCoords.y};
+      localCoords = fixture.GetShape().GetLocalPosition();
+      var absoluteCoords = body.GetWorldPoint(localCoords);
+      //pointCoords = {x:absoluteCoords.x, y:absoluteCoords.y};
+      
+      //pixelCoords = {x: pointCoords.x * SCALE, y: pointCoords.y * SCALE };
+      //helperPoints.push({bodyId:bodyId, shape:"circle", fixtureIndex:0, coords:pointCoords, pixelCoords: pixelCoords, color:"white" });
+      pointCoords = {x:(absoluteCoords.x - -radius), y:absoluteCoords.y};
+      
+      //pointCoords = { x:(bodyCenter.x- -localPosition.x), y:(bodyCenter.y - -localPosition.y)};
+      //pointCoords = {x:(pointCoords.x - -radius), y:pointCoords.y};
       pixelCoords = {x: pointCoords.x * SCALE, y: pointCoords.y * SCALE };
-      helperPoints.push({bodyId:bodyId, shape:"circle", fixtureIndex: "radius", coords:pointCoords, pixelCoords: pixelCoords, color:"white" });
+      helperPoints.push({bodyId:bodyId, shape:"circle", fixtureIndex:0, coords:pointCoords, pixelCoords: pixelCoords, color:"white" });
     } else if (shape === "polygon") {
       fixturePoints = fixture.GetShape().GetVertices();
       for (var i=0; i < fixturePoints.length; i++) {
@@ -1453,7 +1592,21 @@ Physicsb2 = (function() {
     drawHelperPoints();
   }
   
+  /*
+  function createHelperDot(m) {
+    console.log("CREATE HELPER DOT");
+    //console.log("coords",m.pointsList);
+    //var point0 = m.pointsList[0];
+    //var point1 = m.pointsList[1];
+    pixelCoords = {x: (m.pointsList[0].x + m.pointsList[1].x) / 2, y: (m.pointsList[0].y + m.pointsList[1].y) / 2};
+    helperDots[m.shapeId] = {coords: pointCoords, pixelCoords: pixelCoords, color: "gray"};
+    //helperDots.push({shapeId:m.shapeId, coords:pointCoords, pixelCoords: pixelCoords});  
+    //console.log("helperDots", helperDots);
+  }*/
+  
   function drawHelperPoints() {
+    //console.log("draw helper points "+helperPoints.length);
+    
     var coords;
     for (var i=0; i<helperPoints.length; i++) {
       coords = helperPoints[i].pixelCoords;
@@ -1472,6 +1625,23 @@ Physicsb2 = (function() {
     }
   }
 
+  /*
+  function drawHelperDots() {
+    //console.log("DRAW ",helperDots);
+    var coords;
+    for (var i in helperDots) {
+      coords = helperDots[i].pixelCoords;
+      color = helperDots[i].color;
+      ctx = canvas.getContext('2d');
+      ctx.beginPath();
+      ctx.arc(coords.x, coords.y, 12, 0, Math.PI * 2, true); // Outer circle
+      ctx.fillStyle = color; //"rgb(100,100,100,0.5)";
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth=5;
+      ctx.stroke();
+    }
+  }*/
   /*
   function drawHelperLines() {
     var shape, vertices, helper;
@@ -1498,6 +1668,10 @@ Physicsb2 = (function() {
       f.SetUserData(userData);
     }
   }
+  
+  function clearAllHelperPoints() {
+    helperPoints = [];
+  }
 
   function resetAllFillColors() {
     var fixture;
@@ -1510,8 +1684,8 @@ Physicsb2 = (function() {
   }
   
   function createHelperLines(color) {
-    console.log("create helper lines for");
-    console.log(selectedBody);
+    //console.log("create helper lines for");
+    //console.log(selectedBody);
     var f = selectedBody.GetFixtureList();
     var userData = f.GetUserData();
     userData.strokeColor = color;
@@ -1723,7 +1897,7 @@ Physicsb2 = (function() {
     applyTorque: applyTorque,
     applyAngularImpulse: applyAngularImpulse,
     getAllBodies: getAllBodies,
-    radianstodegrees: radianstodegrees,
+    radiansToDegrees: radiansToDegrees,
     drawDebugData: drawDebugData,
     triggerDragMode: triggerDragMode,
     getAllFixtues: getAllFixtures,
