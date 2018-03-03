@@ -323,7 +323,7 @@ Physicsb2 = (function() {
   
   function redrawWorld() {
     if (world) {
-      console.log("redraw world");
+      //console.log("redraw world");
       var body, bodyCenter, bodyId, bodyCenter, shape, color;
       var fixture;
       for (f in fixtureObj) {
@@ -388,7 +388,7 @@ Physicsb2 = (function() {
         
   function copyBody(bodyId) {
     var newBodyId = bodyId+"-"+totalObjectsCreated;
-    console.log("COPY body from "+bodyId+" "+newBodyId);
+    //console.log("COPY body from "+bodyId+" "+newBodyId);
     var body = bodyObj[bodyId];
     var bodyType = body.GetType();
     var behavior = (bodyType === 0) ? "static" : (bodyType === 1) ? "ghost" : "dynamic";
@@ -402,7 +402,7 @@ Physicsb2 = (function() {
   }
         
   function createBody(m) {
-    console.log("CREATE BODY", m);
+    //console.log("CREATE BODY", m);
     var bodyId = m.bodyId;
     var behavior = m.behavior;
     var nlogoCoords = m.coords;
@@ -433,9 +433,9 @@ Physicsb2 = (function() {
   }
   
   function addBodyToWorld(bodyId) {
-    console.log("ADD BODY TO WORLD "+bodyId);
+    //console.log("ADD BODY TO WORLD "+bodyId);
     bodyObj[bodyId] = world.CreateBody(bodyDefObj[bodyId]);
-    console.log('after');
+    //console.log('after');
     totalObjectsCreated++;
   }
   
@@ -477,9 +477,10 @@ Physicsb2 = (function() {
   }*/
   
   function deleteBody(bodyId) {
-    console.log("DELETE BODY "+bodyId);
+    //console.log("DELETE BODY "+bodyId);
     var body = bodyObj[bodyId];
     var f = bodyObj[bodyId].GetFixtureList();
+    
       if (f != null) {
       var fixtureList = [];
       fixtureList.push(f.GetUserData().id);
@@ -498,7 +499,7 @@ Physicsb2 = (function() {
   }
   
   function deleteFixture(fixtureId) {
-    console.log("DELETE FIXTURE "+fixtureId);
+    //console.log("DELETE FIXTURE "+fixtureId);
     var body = fixtureObj[fixtureId].GetBody();
     var f = body.GetFixtureList();
     if (f.GetUserData().id === fixtureId) { 
@@ -521,8 +522,8 @@ Physicsb2 = (function() {
   //  "objects": objects 
   //});
   function updateGroup(m) {
-    console.log("updated body "+m.parentId);
-    console.log("new fixtures ",m.objects);
+    //console.log("updated body "+m.parentId);
+    //console.log("new fixtures ",m.objects);
     var bodyId = m.parentId;
     var objects = m.objects;
     var fixture;
@@ -547,7 +548,7 @@ Physicsb2 = (function() {
       var firstBodyId = fixtureObj[objects[0]].GetBody().GetUserData().id;
       addBodyToWorld(firstBodyId, bodyId);
     } else if (objects.length < fixtureIds.length) {
-      console.log("need to remove an object);")
+      //console.log("need to remove an object);")
       ///console.log('b');
       if (objects.length < fixtureIds.length) {
         //remove extra object 
@@ -572,7 +573,7 @@ Physicsb2 = (function() {
       
     } else {
       //console.log('c');
-      console.log("need to add object");
+      //console.log("need to add object");
       for (var i=0; i<objects.length; i++) {
         fixture = fixtureObj[objects[i]];
         if (fixture && bodyObj[bodyId]) {
@@ -647,22 +648,22 @@ Physicsb2 = (function() {
     
       var body = fixtureObj[fixtureId].GetBody();
       var bodyId = body.GetUserData().id;
-      console.log("REMOVE "+fixtureId+" from "+bodyId);
+      //console.log("REMOVE "+fixtureId+" from "+bodyId);
       bodyObj[bodyId].DestroyFixture(fixtureObj[fixtureId]);
-      console.log(bodyObj[bodyId]);
+      //console.log(bodyObj[bodyId]);
       if (!bodyObj[bodyId].GetFixtureList()) {
         deleteBody(bodyId);
       } else {
         //console.log("using "+fixtureId+" "+bodyId);
         var newBodyId = copyBody(bodyId);
-        console.log("1",getAllBodies());
+        //console.log("1",getAllBodies());
         addBodyToWorld(newBodyId, newBodyId);
         
-        console.log("2",getAllBodies());
+        //console.log("2",getAllBodies());
         //var newFixtureId = copyFixture(fixtureId);
         addFixtureToBody({fixtureId: fixtureId,bodyId:newBodyId});
         
-        console.log("3",getAllBodies());
+        //console.log("3",getAllBodies());
         updateBodyPosition(bodyId);
       }
     }
@@ -700,7 +701,7 @@ Physicsb2 = (function() {
       for (var i=coords.length-1;i>=0;i--){
         vertices.push(new b2Vec2(roundToTenths(coords[i][0] - offsetX), roundToTenths(coords[i][1] - offsetY)))
       }
-      console.log("creating polygon", vertices);
+      //console.log("creating polygon", vertices);
       fixDef.shape.SetAsArray(vertices,vertices.length);
     }
     var firstObj = (bodyObj[bodyId].GetFixtureList() === null) ? true : false;
@@ -747,16 +748,14 @@ Physicsb2 = (function() {
         fixtureObj[value] = fixtureObj[fixtureId];
         delete fixtureObj[fixtureId];
         break;
+
+        
       case "bodyIdShapeMode": 
-        //console.log("change body id");
         var newBodyId = value;
         if (!bodyObj[value]) {
           newBodyId = "body-"+totalObjectsCreated;
-          //console.log("goes to a new body");
           var bodyId = fixture.GetBody().GetUserData().id;
-        //console.log("COPY body from "+bodyId+" "+newBodyId);
           var body = bodyObj[bodyId];
-          //console.log(body.GetPosition());
           var coords = [body.GetPosition().x, body.GetPosition().y ];
           var bodyType = body.GetType();
           var behavior = (bodyType === 0) ? "static" : (bodyType === 1) ? "ghost" : "dynamic";
@@ -768,8 +767,6 @@ Physicsb2 = (function() {
           });
           addBodyToWorld(newBodyId);
         } 
-        //console.log("remove it from current body");
-        //bodyObj[bodyId].DestroyFixture(fixDefObj[fixtureId]);
         var body = fixtureObj[fixtureId].GetBody();
         var f = body.GetFixtureList();
         if (f.GetUserData().id === fixtureId) { 
@@ -780,26 +777,59 @@ Physicsb2 = (function() {
             if (f.GetUserData().id === fixtureId) { body.DestroyFixture(f); console.log("destroy"+fixtureId); break;}
           }
         } 
-        
-        //console.log("add it to new body");
-        //console.log("add to "+newBodyId);
-        //console.log(fixDefObj[fixtureId]);
         bodyObj[newBodyId].CreateFixture(fixDefObj[fixtureId]);
         var f = bodyObj[newBodyId].GetFixtureList();
         var fixture2;
-        //console.log(f);
-        //console.log(f.GetUserData());
         if (f.GetUserData().id === fixtureId) { fixture2 = f; }
         while (f.GetNext()) {
             if (f.GetUserData().id === fixtureId) { fixture2 = f; }
             f = f.GetNext();
         }
         fixtureObj[fixtureId] = fixture2;
-        
         break;
+
     }
+    universe.repaint();
+    world.DrawDebugData(); 
     redrawWorld();
     drawHelperPoints();
+  }
+  
+  function updateBody(bodyId, key, value) {
+    console.log(key+","+value);
+    var body;
+    if (bodyId === null) {
+      bodyId = selectedFixture.GetBody().GetUserData().id;
+    } 
+    body = bodyObj[bodyId];
+    //console.log(body);
+    switch (key) {
+      case "angle":
+        var angle = parseFloat($("#physicsSettings #angle").val()) || 0;
+        body.SetAngle(angle);
+        break;
+      case "objectType":
+        if (value.indexOf[0,1,2] > -1) {
+          value = 0;
+        }
+        body.SetType(value);
+        break;
+      case "bodyIdBodyMode": 
+        var newBodyId = value;
+        console.log("change name to "+newBodyId);
+        var bodyId = body.GetUserData().id;
+        body.GetUserData().id = newBodyId;
+        bodyObj[newBodyId] = bodyObj[bodyId];
+        delete bodyObj[bodyId];
+        break;
+      
+    }
+    universe.repaint();
+    world.DrawDebugData(); 
+    createHelperLines("limegreen"); 
+
+    //drawHelperArc();
+    //redrawWorld();
   }
   
   function createFixture(m) {
@@ -852,10 +882,11 @@ Physicsb2 = (function() {
 
   
   function addTargetToBody(m) {
+    console.log("add target to body");
     var id = m.id;
     var bodyA = m.bodyA;
     var coords = m.coords;
-    
+    applyForce(m);
   }
   
   function addDistanceJointToBody(m) {
@@ -921,24 +952,10 @@ Physicsb2 = (function() {
   ///////// FORCES IN WORLD
   
   function applyForce(m) {
-    /*var id = m[0];
-    var bodyA = m[1];
-    var coords = m[2];
-    var heading = m[3];
-    var amount = m[4] * 10;*/
+
     var id, bodyA, coords, heading, amount, radians;
-    
-    id = null;
-    bodyA = m.bodyA;
-    coords = null;
-    coords = bodyObj[bodyA].GetWorldCenter();
-    heading = m.heading;
-    amount = m.force;
-    radians = degreesToRadians(heading);
-    //bodyObj[bodyA].ApplyForce(
-    //  {x:roundToTenths(Math.cos(radians)*amount), y:roundToTenths(Math.sin(radians)*amount)}, 
-    //  new b2Vec2(roundToTenths(coords.x), roundToTenths(coords.y)) );
-  
+    var amount = m.force;
+    radians = degreesToRadians(m.angle);
     for (body in bodyObj) {
       b = bodyObj[body];
       coords = b.GetWorldCenter();
@@ -946,14 +963,6 @@ Physicsb2 = (function() {
         {x:roundToTenths(Math.cos(radians)*amount), y:roundToTenths(Math.sin(radians)*amount)}, 
         new b2Vec2(roundToTenths(coords.x), roundToTenths(coords.y)) );
     }
-  
-      
-    /*
-    var coordsA = nlogotobox2d(coords);
-    var radians = degreesToRadians(heading);
-    bodyObj[bodyA].ApplyForce(
-      {x:roundToTenths(Math.cos(radians)*amount), y:roundToTenths(Math.sin(radians)*amount)}, 
-      new b2Vec2(roundToTenths(coordsA[0]), roundToTenths(coordsA[1])) );*/
   }
   
   function applyLinearImpulse(m) {
@@ -980,6 +989,10 @@ Physicsb2 = (function() {
     var amount = m[1] * 5;
     bodyObj[bodyA].ApplyAngularImpulse(amount);      
   }
+
+
+
+
 
   function setupDebugDraw() {
     if (world) {
@@ -1285,7 +1298,7 @@ Physicsb2 = (function() {
          $("#dragModeSettings").addClass("hidden");
          $("#targetModeSettings").addClass("hidden");
          $("#groupModeSettings").removeClass("hidden");//.css("display","inline-block");
-         $("#physicsSettings .objectId").val(body.GetUserData().id);
+         $("#physicsSettings #bodyIdBodyMode").val(body.GetUserData().id);
          $("#physicsSettings #angle").val(body.GetAngle());
          $("#physicsSettings .objectType").val(body.GetType());
          clearAllHelperLines(); 
@@ -1790,6 +1803,10 @@ Physicsb2 = (function() {
   }
   
   function drawHelperArc() {
+    console.log("draw helper arc");
+    console.log(selectedBody);
+    
+    
     var center = selectedBody.GetPosition();
     pointCoords = center;
     pixelCoords = {x: pointCoords.x * SCALE, y: pointCoords.y * SCALE};
@@ -1799,8 +1816,11 @@ Physicsb2 = (function() {
     ctx.strokeStyle = "white";
     ctx.lineWidth=5;
     ctx.moveTo(pixelCoords.x, pixelCoords.y);
+    
+    
     var mouseCoords = {x: mouseX, y: mouseY};
     var results = offsetToAngle(center, mouseCoords, 80);
+    
     var newAngle = results.angle;
     var pointCoords = results.coords;
     //helperArc = {x: pointCoords.x, y: pointCoords.y};
@@ -1818,6 +1838,7 @@ Physicsb2 = (function() {
     ctx.strokeStyle = "white";
     ctx.lineWidth=5;
     ctx.stroke();
+    
     //console.log("draw helper arc at "+pixelCoords.x + " " + pixelCoords.y);
   }
   
@@ -1907,7 +1928,8 @@ Physicsb2 = (function() {
     updateFixture: updateFixture,
     triggerModeChange: triggerModeChange,
     deleteSelected: deleteSelected,
-    getTotalObjectsCreated: getTotalObjectsCreated
+    getTotalObjectsCreated: getTotalObjectsCreated,
+    updateBody: updateBody
   };
 
 })();
