@@ -24,6 +24,7 @@ Physics = (function() {
     $(".physics-controls").css("display","none");
     spanText = "<div id='physicsMenu'>";
     spanText +=       "<div class='leftControls'>"; //id='physicsDrawControls'>";
+    spanText +=         "<div style='display:inline-block'><div><input type='checkbox' id='showAABB'></div><div><input type='checkbox' id='showCenter'></div></div>";
     
     
     spanText +=         " <img src='js/extensions/physics/images/a1.png' class='physics-drag purple hidden'>"
@@ -38,10 +39,8 @@ Physics = (function() {
     spanText +=         " <img src='js/extensions/physics/images/a10.png' class='physics-group white'>"
     spanText +=         " <img src='js/extensions/physics/images/a11.png' class='physics-target purple hidden'>"
     spanText +=         " <img src='js/extensions/physics/images/a12.png' class='physics-target white'>"
-    
     spanText +=       "</div>";
     spanText +=       "<div class='rightControls'>"; //"<div id='physicsStateControls'>";
-    
     spanText +=         "<i class='fa fa-save' id='physicsSave' aria-hidden='true'></i>";
     spanText +=         " <i class='fa fa-refresh' id='physicsRefresh' aria-hidden='true'></i>";
     spanText +=         " <i class='fa fa-play' id='physicsPlay' aria-hidden='true'></i>";
@@ -49,7 +48,6 @@ Physics = (function() {
     spanText +=       "</div>";
     spanText += "</div>";
     $(".netlogo-view-container").append(spanText);  
-    
     spanText =  "<div id='physicsSettings' class='hidden'>";
     spanText += "  <div class='leftControls'>";//"<span id='shapeSettings'>";
     spanText += "    <div id='dragModeSettings'>";
@@ -67,9 +65,9 @@ Physics = (function() {
     spanText += "      BodyId: <select id='bodyIdShapeMode'>";
     spanText += "        <option></option>";
     spanText += "      </select>";
-    //spanText += "      D:<input type='number' id='density'>";
-    //spanText += "      R:<input type='number' id='restitution'>";
-    //spanText += "      F:<input type='number' id='friction'>";
+    spanText += "      D:<input type='number' id='density' title='density'>";
+    spanText += "      R:<input type='number' id='restitution' title='restitution'>";
+    spanText += "      F:<input type='number' id='friction' title='friction'>";
     spanText += "    </div>";
     spanText += "    <div id='groupModeSettings' class='in-line-block'>";
     spanText += "      BodyId: <input id='bodyIdBodyMode' type='text' value='123'>";
@@ -139,11 +137,8 @@ Physics = (function() {
     var typeOfObject = "body";
     var typeOfShape = "circle";
     var vertices = [[0,0], [2,2]];
-    
     var bodyId;
     var shapeId;
-    //var objects = [];
-    
     var bodyCoords, fixtureCoords;
     for (var i=0; i<settings.length; i++) {
       key = settings[i][0];
@@ -163,18 +158,8 @@ Physics = (function() {
         case "type-of-object": typeOfObject = value; break;
         case "type-of-shape": typeOfShape = value; break;
         case "vertices": vertices = value; break;
-      
       }
-        
     }
-    /*if (name === "target") {
-      console.log(settings);
-      angle = settings[1][0];
-      force = settings[1][1];
-    }*/
-    //console.log("force", force);
-    //console.log("angle", angle);
-    //console.log(typeOfObject);
     if (typeof color === "object") {
       color = rgbToHex(color);
     }
@@ -189,21 +174,7 @@ Physics = (function() {
       });
       Physicsb2.addBodyToWorld(bodyId);
     } else if (typeOfObject === "shape") {
-      //coords = coordsRelative;
       shapeId = name;
-      if (typeOfShape === "line") {
-        //bodyCoords = [ (coords[0][0] - -coords[1][0]), (coords[0][1] - -coords[1][1]) / 2 ];
-        //fixtureCoords = coords;
-        
-      }
-      if (typeOfShape === "circle") {
-        //bodyCoords = coords;
-        //coords = coordsRelative;
-        vertices = [ [ coords[0], coords[1]], [coords[0]+radius, coords[1]+radius ]];
-      }
-      if (typeOfShape === "polygon") {
-        //bodyCoords = coords;
-      }
       Physicsb2.createFixture({
         "shapeId": shapeId, 
         "coords": coords, 
@@ -221,7 +192,6 @@ Physics = (function() {
       });  
     } else if (typeOfObject === "target") {
       //console.log("index.html to physicsJs");
-      
       /*Physicsb2.addTargetToBody({
         "id": name+"-"+target,
         "bodyA": parentId,
@@ -232,107 +202,6 @@ Physics = (function() {
     }
     Physicsb2.redrawWorld();
   }
-  
-  
-  /*
-  function createObject(name, settings) {
-    var key, value;
-    var parentId;
-    var behavior = "dynamic";
-    var shape = "circle";
-    var coords = "";
-    var fixtureCoords = "";
-    var heading = 0;
-    var radius = 2;
-    var density = 0.5;
-    var friction = 0.5;
-    var restitution = 0.5;
-    var objects = [];
-    var color = "(none)";
-    var bodyCoords, fixtureCoords;
-    for (var i=0; i<settings.length; i++) {
-      key = settings[i][0];
-      value = settings[i][1];
-      switch ( key ) {
-        case "behavior": behavior = value; break;
-        case "shape": shape = value; break;
-        case "coords": coords = value; break;
-        case "heading": heading = value; break;
-        case "radius": radius = value; break;
-        case "helper-coords": fixtureCoords = value; break;
-        case "density": density = value; break;
-        case "friction": friction = value; break;
-        case "restitution": restitution = value; break;
-        case "objects": objects = value; break;
-        case "color": color = value; break;
-        case "bodyA": bodyA = value; break;
-        case "force": force = value; break;
-      }
-            
-    }
-    if (typeof color === "object") {
-      color = rgbToHex(color);
-    }
-    //parentId = name+"body";
-    parentId = "body-" + Physicsb2.getTotalObjectsCreated();
-    if (shape === "line") {
-      bodyCoords = [ (coords[0][0] - -coords[1][0]), (coords[0][1] - -coords[1][1]) / 2 ];
-      fixtureCoords = coords;
-    }
-    if (shape === "circle") {
-      bodyCoords = coords;
-      fixtureCoords = [ [ coords[0], coords[1]], [coords[0]+radius, coords[1]+radius ]];
-    }
-    if (shape === "polygon") {
-      bodyCoords = coords;
-    }
-    if (behavior === "group") {
-      Physicsb2.updateGroup({
-        "parentId": name,
-        "objects": objects 
-      });
-    } else if (behavior === "target") {
-      
-      //physics:create-object "target" [ ["bodyA" "ball"] ["heading" angle ] [ "force" force]  ]
-      Physicsb2.applyForce({
-        "bodyA": bodyA,
-        "heading": heading,
-        "force": force
-      });
-    } else {
-      Physicsb2.createBody({
-        "parentId": parentId, 
-        "behavior": behavior, 
-        "bodyCoords": bodyCoords, 
-        "heading": heading 
-      });
-      Physicsb2.addBodyToWorld(parentId, parentId);
-      Physicsb2.createFixture({
-        "name": name, 
-        "bodyCoords": bodyCoords, 
-        "fixtureCoords": fixtureCoords, 
-        "shape": shape, 
-        "settings": [density, friction, restitution],
-        "color": color
-      });  
-      Physicsb2.addFixtureToBody({
-        "fixtureId": name, 
-        "bodyId": parentId, 
-      });  
-      //Physicsb2.addTargetToBody({
-      //  "id": name+"-"+target,
-      //  "bodyA": parentId,
-      //  "coords": null
-      //});
-      
-      
-  
-        
-    }
-
-    Physicsb2.redrawWorld();
-    
-  }*/
   
   function rgbToHex(color) {
     var result;
@@ -385,52 +254,11 @@ Physics = (function() {
       body = allBodies[obj];
       results.push(body.GetAngle());
     }
-    //console.log(results);
     return results;
   }
   
   function getObjects() {
-    //console.log("get objects");
-    /*
-    var objectsList = [];
-    var bodies = Physicsb2.getAllBodies();
-    var object, name, settings, fixtures, fixtureType, bodyType, position, angle, radius;
-    for (b in bodies) {
-      object = [];
-      name = b;
-      settings = [];
-      fixtures = bodies[b].GetFixtureList();
-      position = worldToPatch(bodies[b].GetPosition());
-      angle = Physicsb2.radianstodegrees(bodies[b].GetAngle());
-      
-      switch (bodies[b].GetType()) {
-        case 0: bodyType = "static"; break;
-        case 1: bodyType = "kinematic"; break;
-        case 2: bodyType = "dynamic"; break;
-        default: bodyType = "none"; break;
-      }
-      fixtureType = "";
-      for (var k in fixtures.GetShape()) {
-        //console.log(k);
-        if (k === "b2CircleShape") { 
-          fixtureType = "circle"; 
-          radius = fixtures.GetShape().GetRadius();
-        }
-        if (k === "b2PolygonShape") { fixtureType = "polygon"; }
-      }
-      //console.log("name:"+name+" bodyType:"+bodyType+" fixtureType:"+ fixtureType+" position:"+position.x+","+position.y+" angle:"+angle);
-      if (fixtureType === "circle") {
-        //console.log("radius: "+radius);
-      }
-    }*/
-    var results = [];
-    var body;
-    var allBodies = Physicsb2.getAllBodies();
-    for (obj in allBodies) {
-      body = allBodies[obj];
-      results.push(body.GetAngle() * Math.PI );
-    }
-    //console.log(results);
+    results = [];
     return results;
   }
 
@@ -483,14 +311,15 @@ Physics = (function() {
     assignSettings("bodyIdBodyMode");
     assignSettings("angle");
     assignSettings("objectType");
+    
+    assignDisplay("showAABB");
+    assignDisplay("showCenter");
 
   }
   
   function assignSettings(setting) {
     $("#physicsSettings .leftControls").on("change", "#"+setting, function () {
-      
       console.log("setting " + setting + " changed");
-      //console.log($(this).val());
       var value = $(this).val();
       var fixtureId = $("#shapeId").val();
       if (["color","density","restitution","friction","shapeId","bodyIdShapeMode"].indexOf(setting) > -1) {
@@ -514,6 +343,16 @@ Physics = (function() {
     });
   }
   
+  function assignDisplay(display) {
+    $("#physicsMenu .leftControls").on("click", "#"+display, function() {
+      if ($("#physicsMenu .leftControls").hasClass("selected")) {
+        var showAABB = $("#showAABB:checked").length === 1 ? true : false;
+        var showCenter = $("#showCenter:checked").length === 1 ? true : false;
+        Physicsb2.triggerDisplayChange({"showAABB": showAABB, "showCenter": showCenter });
+      }
+    });
+  }
+  
   function getDrawButtonMode() {
     return mode;
   }
@@ -531,7 +370,6 @@ Physics = (function() {
       $("#physicsMenu .rightControls i:not(#physicsPause)").removeClass("hidden");
       //$("#physicsMenu").addClass("selected");
       $("#physicsMenu div").addClass("selected");
-      
       universe.repaint();
       Physicsb2.drawDebugData();
       $(".physics-drag").click()
@@ -560,7 +398,6 @@ Physics = (function() {
     $("#physicsPause").addClass("inactive");
     $("#physicsPlay").removeClass("inactive");
     Physicsb2.stopWorld();
-
     if (universe.model) {
       for (var turtleId in universe.model.turtles) {
         world.turtleManager.getTurtle(turtleId).xcor = universe.model.turtles[turtleId].xcor;
@@ -572,10 +409,8 @@ Physics = (function() {
 
   function removePhysics() {
     Physicsb2.stopWorld();
-
     $(".physics-controls").css("display","none");
     $("#physicsMenu").css("display","none");
-    
     if ($("#physicsPlay").hasClass("inactive")) { 
       $("#physicsPlay").removeClass("inactive");  
       $("#physicsPause").addClass("inactive");  
