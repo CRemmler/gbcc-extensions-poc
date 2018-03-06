@@ -75,7 +75,7 @@ Physics = (function() {
     spanText += "      Angle:<input type='number' id='angle'>";
     spanText += "    </div>";
     spanText += "    <div id='targetModeSettings' class='in-line-block'>";
-    spanText += "      TargetId: <input class='targetId' type='text' value='123'>";
+    spanText += "      TargetId: <input id='targetId' type='text' value='123'>";
     spanText += "      BodyId: <select id='bodyIdTargetMode'>";
     spanText += "        <option></option>";
     spanText += "      </select>";
@@ -173,6 +173,8 @@ Physics = (function() {
         "angle": angle
       });
       Physicsb2.addBodyToWorld(bodyId);
+
+
     } else if (typeOfObject === "shape") {
       shapeId = name;
       Physicsb2.createFixture({
@@ -191,7 +193,7 @@ Physics = (function() {
         "bodyId": bodyId, 
       });  
     } else if (typeOfObject === "target") {
-      //console.log("index.html to physicsJs");
+      console.log("index.html to physicsJs apply force");
       /*Physicsb2.addTargetToBody({
         "id": name+"-"+target,
         "bodyA": parentId,
