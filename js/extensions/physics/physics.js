@@ -35,10 +35,22 @@ Physics = (function() {
     spanText +=         " <img src='js/extensions/physics/images/a6.png' class='physics-circle white'>"
     spanText +=         " <img src='js/extensions/physics/images/a7.png' class='physics-triangle purple hidden'>"
     spanText +=         " <img src='js/extensions/physics/images/a8.png' class='physics-triangle white'>"
+    
+    
+    spanText +=         " <img src='js/extensions/physics/images/a14.png' class='physics-target purple hidden'>"
+    spanText +=         " <img src='js/extensions/physics/images/a13.png' class='physics-target white'>"
+    spanText +=         " <img src='js/extensions/physics/images/a16.png' class='physics-group purple hidden'>"
+    spanText +=         " <img src='js/extensions/physics/images/a15.png' class='physics-group white'>"
+    spanText +=         " <img src='js/extensions/physics/images/a18.png' class='physics-force purple hidden'>"
+    spanText +=         " <img src='js/extensions/physics/images/a17.png' class='physics-force white'>"
+    
+    /*
     spanText +=         " <img src='js/extensions/physics/images/a9.png' class='physics-group purple hidden'>"
     spanText +=         " <img src='js/extensions/physics/images/a10.png' class='physics-group white'>"
     spanText +=         " <img src='js/extensions/physics/images/a11.png' class='physics-target purple hidden'>"
     spanText +=         " <img src='js/extensions/physics/images/a12.png' class='physics-target white'>"
+    */
+    
     spanText +=       "</div>";
     spanText +=       "<div class='rightControls'>"; //"<div id='physicsStateControls'>";
     spanText +=         "<i class='fa fa-save' id='physicsSave' aria-hidden='true'></i>";
@@ -304,6 +316,8 @@ Physics = (function() {
     assignDrawButtonMode("group"); 
     //assignDrawButtonMode("joint"); 
     assignDrawButtonMode("target");
+    
+    assignDrawButtonMode("force");
     assignSettings("color");
     assignSettings("density");
     assignSettings("restitution");
