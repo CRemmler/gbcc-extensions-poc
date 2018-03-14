@@ -342,6 +342,8 @@ Physics = (function() {
         Physicsb2.updateFixture(null, setting, value);
       } else  if (["bodyIdBodyMode","angle", "objectType"].indexOf(setting) > -1) {
         Physicsb2.updateBody(null, setting, value);
+      } else if (["targetId","bodyIdTargetMode","snap"].indexOf(setting) > -1) {
+        Physicsb2.updateTarget(null, setting, value);
       }
     });
   }
