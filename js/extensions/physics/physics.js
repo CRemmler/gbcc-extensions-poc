@@ -152,14 +152,17 @@ Physics = (function() {
     var bodyId;
     var shapeId;
     var bodyCoords, fixtureCoords;
+    var position = "absolute";
+    var targetId = undefined;
     for (var i=0; i<settings.length; i++) {
       key = settings[i][0];
       value = settings[i][1];
       switch ( key ) {
-        case "angle": angle = value; break;
+        case "heading": angle = value; break;
         case "behavior": behavior = value; break;
         case "body-id": bodyId = value; break;
         case "color": color = value; break;
+        case "position": position = value; break;
         //case "coords": coords = value; break;
         case "coords": coords = value; break;
         case "density": density = value; break;
@@ -170,6 +173,7 @@ Physics = (function() {
         case "type-of-object": typeOfObject = value; break;
         case "type-of-shape": typeOfShape = value; break;
         case "vertices": vertices = value; break;
+        case "target-id": targetId = value; break;
       }
     }
     if (typeof color === "object") {
@@ -205,13 +209,13 @@ Physics = (function() {
         "bodyId": bodyId, 
       });  
     } else if (typeOfObject === "target") {
-      console.log("index.html to physicsJs apply force");
+      //console.log("index.html to physicsJs apply force");
       /*Physicsb2.addTargetToBody({
         "id": name+"-"+target,
         "bodyA": parentId,
         "coords": null
       });*/
-      Physicsb2.applyForce({angle: angle, force: force});
+      Physicsb2.applyForce({angle: angle, force: force, position: position, targetId: targetId});
 
     }
     Physicsb2.redrawWorld();
@@ -327,7 +331,9 @@ Physics = (function() {
     assignSettings("bodyIdBodyMode");
     assignSettings("angle");
     assignSettings("objectType");
-    
+    assignSettings("snap");
+    assignSettings("targetId");
+    assignSettings("bodyIdTargetMode");
     assignDisplay("showAABB");
     assignDisplay("showCenter");
 
