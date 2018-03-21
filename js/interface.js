@@ -41,7 +41,6 @@ Interface = (function() {
     "<div class='netlogo-button-agent-context'></div> <span class='netlogo-label'>Create</span> </button>";
     $("body").append(widget);
     $("#netlogo-button-"+index).on("click", function() {
-      //var myRoom = markdown.toHTML($(".create-room-input").val());
       var myRoom = $(".create-room-input").val();
       socket.emit("enter room", {room: myRoom});
     });
@@ -64,7 +63,9 @@ Interface = (function() {
       passCodes["netlogo-button-"+index] = passCode;
       widget = "<button id='netlogo-button-"+index+"'class='netlogo-widget netlogo-command login login-room-button'"+
       " type='button'>"+
-      "<div class='netlogo-button-agent-context'></div> <span class='netlogo-label'>"+markdown.toHTML(roomName)+"</span> </button>";
+//      "<div class='netlogo-button-agent-context'></div> <span class='netlogo-label'>"+markdown.toHTML(roomName)+"</span> </button>";
+    "<div class='netlogo-button-agent-context'></div> <span class='netlogo-label'>"+roomName+"</span> </button>";
+
       $(".login-room-button-container").append(widget);
       $(".login-room-button-container").on("click", "#netlogo-button-"+index, function() {
         var myRoom = roomNames[$(this).attr("id")];
@@ -97,7 +98,8 @@ Interface = (function() {
   function displayTeacherInterface(room, components) {
     showItems(components.componentRange[0], components.componentRange[1]);
     $(".netlogo-export-wrapper").css("display","block");
-    var sanitizedRoom = markdown.toHTML(room);
+    //var sanitizedRoom = markdown.toHTML(room);
+    var sanitizedRoom = room;
     $("#netlogo-title").html("<p>"+$("#netlogo-title").html()+" "+sanitizedRoom.substr(3,sanitizedRoom.length));
     $(".netlogo-view-container").removeClass("hidden");
     $(".netlogo-tab-area").removeClass("hidden");
@@ -106,7 +108,8 @@ Interface = (function() {
 
   function displayStudentInterface(room, components, activityType) {
     showItems(components.componentRange[0], components.componentRange[1]);
-    var sanitizedRoom = markdown.toHTML(room);
+    //var sanitizedRoom = markdown.toHTML(room);
+    var sanitizedRoom = room;
     $("#netlogo-title").html("<p>"+$("#netlogo-title").html()+" "+sanitizedRoom.substr(3,sanitizedRoom.length));
     $(".netlogo-view-container").removeClass("hidden");
     $(".admin-body").css("display","none");

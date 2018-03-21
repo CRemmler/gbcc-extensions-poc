@@ -24,7 +24,9 @@ Maps = (function() {
     $("#mapContainer").css("left", $(".netlogo-view-container").css("left"));
     $("#mapContainer").css("top", $(".netlogo-view-container").css("top"));
     $("#mapContainer").css("display", "none");
-    map = L.map('mapContainer').setView([0,0], 13);
+    if (L) {
+      map = L.map('mapContainer').setView([0,0], 13);
+    }
     setupEventListeners();
   }
   
@@ -47,7 +49,8 @@ Maps = (function() {
   
   function updateMap(state) {
   //  map.redraw();
-    map.invalidateSize();
+
+    if (map) { map.invalidateSize(); }
     if (state === "mapOn") {
       $("#mapOff").removeClass("selected");
       $("#mapOn").addClass("selected");
@@ -82,10 +85,12 @@ Maps = (function() {
     var allMarkers = data[1];
     zoom = settings[0];
     location = settings[1];
-    map.setView(location, zoom);
-    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    if (map) { 
+      map.setView(location, zoom);
+      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+    }
     //Images.clearImage();
     Physics.removePhysics();
     Maps.removeMap();
@@ -108,7 +113,7 @@ Maps = (function() {
     var lng = location[0];
     var lat = location[1];
     var newLatLng = new L.LatLng(lat, lng);
-    var marker = L.marker(newLatLng).addTo(map);
+    var marker = map ? L.marker(newLatLng).addTo(map) : null;
     markers[name] = marker;
   }
   
@@ -203,7 +208,7 @@ Maps = (function() {
   }
   */
   function deleteMarker(name) {
-    map.removeLayer(markers[name]);
+    if (map) { map.removeLayer(markers[name]); }
   }
   
   function removeMap() {
@@ -228,7 +233,7 @@ Maps = (function() {
     var pixelY = universe.view.yPcorToCanvas(ycor);
     var pixelPercentX = 1 - (pixelX / (viewWidth * 2));
     var pixelPercentY = (pixelY / (viewHeight * 2));
-    var boundaries = map.getBounds();
+    var boundaries = map ? map.getBounds() : { "_northEast": {"lat": 0, "lng": 0}, "_southWest": {"lat": 0, "lng": 0}};
     var boundaryMinX = boundaries._northEast.lng;
     var boundaryMinY = boundaries._northEast.lat;
     var boundaryMaxX = boundaries._southWest.lng;
@@ -241,7 +246,7 @@ Maps = (function() {
   function lnglatToPatch(coords) {
     var markerPositionX = coords[0];
     var markerPositionY = coords[1];
-    var boundaries = map.getBounds();
+    var boundaries = map ? map.getBounds() : { "_northEast": {"lat": 0, "lng": 0}, "_southWest": {"lat": 0, "lng": 0}};
     var boundaryMaxX = boundaries._northEast.lng;
     var boundaryMaxY = boundaries._northEast.lat;
     var boundaryMinX = boundaries._southWest.lng;

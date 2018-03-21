@@ -122,8 +122,8 @@ Physics = (function() {
     var objects = data[1];
     //Images.clearImage();
     Physics.removePhysics();
-    //Maps.removeMap();
-    //Graph.removeGraph();
+    Maps.removeMap();
+    Graph.removeGraph();
     world.triggerUpdate();
     Physicsb2.createWorld(settings);
     

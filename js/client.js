@@ -28,8 +28,8 @@ jQuery(document).ready(function() {
     userType = data.userType;
     Gallery.setupGallery({settings: data.gallerySettings, userId: userId});
     Physics.setupInterface();
-    //Maps.setupInterface();
-  //  Graph.setupInterface();
+    Maps.setupInterface();
+    Graph.setupInterface();
     $(".netlogo-canvas").attr("id","netlogoCanvas"); 
     allowMultipleButtonsSelected = data.gallerySettings.allowMultipleSelections; 
     allowGalleryForeverButton = data.gallerySettings.allowGalleryControls;
