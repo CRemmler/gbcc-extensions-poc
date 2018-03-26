@@ -64,16 +64,16 @@ Physics = (function() {
     spanText += "  <div class='leftControls'>";//"<span id='shapeSettings'>";
     spanText += "    <div id='dragModeSettings'>";
     spanText += "      ShapeId: <input id='shapeId' type='text'>";
-    spanText += "      Color: <select id='color'>";
-    spanText += "        <option value='(none)'>(none)</option>";
-    spanText += "        <option value='#ff000032'>red</option>";
-    spanText += "        <option value='#ffa50032'>orange</option>";
-    spanText += "        <option value='#ffff0032'>yellow</option>";
-    spanText += "        <option value='#00ff0032'>green</option>";
-    spanText += "        <option value='#0000ff32'>blue</option>";
-    spanText += "        <option value='#80008032'>purple</option>";
-    spanText += "        <option value='(other)'>(other)</option>";
-    spanText += "      </select>";
+    //spanText += "      Color: <select id='color'>";
+    //spanText += "        <option value='(none)'>(none)</option>";
+    //spanText += "        <option value='#ff000032'>red</option>";
+    //spanText += "        <option value='#ffa50032'>orange</option>";
+    //spanText += "        <option value='#ffff0032'>yellow</option>";
+    //spanText += "        <option value='#00ff0032'>green</option>";
+    //spanText += "        <option value='#0000ff32'>blue</option>";
+    //spanText += "        <option value='#80008032'>purple</option>";
+    //spanText += "        <option value='(other)'>(other)</option>";
+    //spanText += "      </select>";
     spanText += "      BodyId: <select id='bodyIdShapeMode'>";
     spanText += "        <option></option>";
     spanText += "      </select>";
@@ -93,6 +93,13 @@ Physics = (function() {
     spanText += "      </select>";
     spanText += "      <input type='checkbox' id='snap'> Snap";
     spanText += "    </div>";
+    
+    spanText += "    <div id='worldModeSettings' class='in-line-block'>";
+    spanText += "      Gravity:<input type='checkbox' id='gravityX'>x";
+    spanText += "      <input type='checkbox' id='gravityY'>y Wrap:<input type='checkbox' id='wrapX'>x";
+    spanText += "      <input type='checkbox' id='wrapY'>y";
+    spanText += "    </div>";
+    
     spanText += "  </div>"; 
     spanText += "  <div class='rightControls'>";//"<span id='physicsTrash'>";
     spanText += "    <i class='fa fa-trash-o' id='physicsDelete' aria-hidden='true'></i>";
@@ -101,6 +108,9 @@ Physics = (function() {
     
     $(".netlogo-view-container").append(spanText);  
     $("#physicsMenu").css("display", "none");
+    $("#physicsSettings").css("top", parseFloat($(".netlogo-canvas").css("height")) - 34 + "px");
+    
+    
     //$("#physicsSettings").css("display", "none");
     //$("#physicsSettings").
     setupEventListeners();
@@ -336,6 +346,10 @@ Physics = (function() {
     assignSettings("bodyIdTargetMode");
     assignDisplay("showAABB");
     assignDisplay("showCenter");
+    assignDisplay("gravityX");
+    assignDisplay("gravityY");
+    assignDisplay("wrapX");
+    assignDisplay("wrapY");
 
   }
   
@@ -350,6 +364,8 @@ Physics = (function() {
         Physicsb2.updateBody(null, setting, value);
       } else if (["targetId","bodyIdTargetMode","snap"].indexOf(setting) > -1) {
         Physicsb2.updateTarget(null, setting, value);
+      } else if (["gravityX","gravityY","wrapX","wrapY"].indexOf(setting) > -1) {
+        Physicsb2.updateWorld(setting, value);
       }
     });
   }

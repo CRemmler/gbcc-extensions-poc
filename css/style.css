@@ -56,7 +56,7 @@
   height: 33px;
 }
 
-.login-room-button-container {
+.netlogo-widget.login-room-button-container {
   background-color: white; 
   overflow: scroll;
   border:1px solid black; 

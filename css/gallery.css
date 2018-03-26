@@ -505,7 +505,7 @@
 
 #physicsSettings {
   position: absolute; 
-  top: 415px; 
+  //top: 415px; 
   background-color: #ccc; 
   //padding: 3px; 
   width: 100%; 
