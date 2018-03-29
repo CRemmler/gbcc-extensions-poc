@@ -309,7 +309,7 @@ to gbcc-on-map-update
     pd
     if (item 0 map-coords != "does not exist") [
       let coords maps:lnglat-to-patch map-coords
-      show coords
+      ;;show coords
       ifelse ( item 0 coords = "out of bounds") [
         ht
         pu
@@ -358,13 +358,13 @@ to maps
   let zoom 10
   let location (list 30.307182 -97.755996)
   show "import maps"
-  show markers
+  ;;show markers
   maps:import (list (list zoom location) markers)
   setup
 end
 
 to physics 
-  show count turtles 
+  ;;show count turtles 
   set mode "physics"
   ask patches [set pcolor 2]
   ask patches with [pxcor mod 2 = pycor mod 2 ] [ set pcolor 3 ]
@@ -424,32 +424,35 @@ to clear-image
   image:clear
 end 
 
-to create 
+to create
+  show "create"
   ifelse (mode = "physics") [
-    ;;set code (word "create-physics-turtles 1 [\n    set size 4\n    set shape \"turtle\"\n    set my-name who\n    set turtle-name my-name\n    set label my-name\n    let radius 2\n    physics:create-object (word \"ball\" my-name) (list \"dynamic-circle\" (list xcor ycor radius heading) )\n    physics:connect-to-object my-name (word \"ball\" my-name) \n  ]")
-    ; set code (word "let x 0 let y 0 let h 0 let n 0\ncreate-physics-turtles 1 [\n    set size 4\n    set shape \"turtle\"\n    set my-name who\n    set turtle-name my-name\n    set label my-name\n    set n my-name\n    set x xcor\n    set y ycor\n   set h heading\n ] physics:create-object (word \"ball\" \"c\") (list [\"behavior\" \"dynamic\" ] [ \"shape\" \"circle\" ] [ \"coords\" [ 0 0 ] ] [ \"radius\" 2 ] [ \"heading\"  0 ]  )\n    physics:connect-to-object n (word \"ball\" n) \n ")
+    ;set code (word "create-map-turtles 1 [ \n    set size 4 \n    set shape \"turtle\"\n    set my-name word \"object\" who\n    set label my-name \n    pd\n    set label-color black\n    set turtle-name my-name\n\n    physics:create-object (word \"body-\" my-name)\n      [ [ \"type-of-object\" \"body\"]\n      [ \"patch-coords\" (list my-x my-y) ] ]\n\n    physics:create-object (word \"shape-\" my-name)\n      [ [ \"type-of-object\" \"shape\" ]\n      [ \"relative-coords\" [ 0 0 ] ] ]\n\n    ;physics:connect-who-to-object who (word \"body-\" my-name) \n] ")
   ][
   ifelse (mode = "geogebra") [
-    set code "create-graph-turtles 1 [ \n    set size 4 \n    set shape \"turtle\"\n    set my-name word \"point\" who\n    set label my-name \n    set turtle-name my-name\n    set label-color black\n    pd\n    graph:create-point my-name\n      graph:patch-to-graph (list xcor ycor)\n]"
+    set code (word "create-graph-turtles 1 [ \n    set size 4 \n    set shape \"turtle\"\n    set my-name word \"point\" who\n    set label my-name \n    pd\n    set label-color black\n    set turtle-name my-name\n    setxy 0 0\n    graph:create-point (word "" my-name)\n      [ \"patch-coords\" [ 0 0 ] ]\n]")
   ][
   ifelse (mode = "maps") [
-    set code "create-map-turtles 1 [ \n    set size 4 \n    set shape \"turtle\"\n    set my-name word \"marker\" who\n    set label my-name \n    pd\n    set label-color black\n    set turtle-name my-name\n    maps:create-marker my-name\n      maps:patch-to-lnglat (list my-x my-y)\n]"
+    set code (word "create-map-turtles 1 [ \n    set size 4 \n    set shape \"turtle\"\n    set my-name word \"marker\" who\n    set label my-name \n    pd\n    set label-color black\n    set turtle-name my-name\n    setxy 0 0\n    maps:create-marker (word "" my-name) [\n      [ \"patch-coords\" [ 0 0 ] ]\n      [ \"foo\" \"bar\" ]   \n    ] \n]")
   ][  
-    set code "create-plain-turtles 1 [ \n    set size 4 \n    set shape \"turtle\"\n    set my-name word \"turtle\" who\n    set label my-name \n    pd\n    set turtle-name my-name\n]"
+    set code ""
   ]]]
 end 
 
-to rename 
+;;maps:create-marker "one" [ "patch-coords" [ 0 0 ] ]
+
+
+to update 
   ifelse (mode = "physics") [
-    set code (word "physics:disconnect-from-object turtle-name \"ball-" turtle-name "\" " "\n\nphysics:connect-to-object turtle-name \"ball-" turtle-name "\" " )
+    set code (word "ask one-of physics-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ \n    set new-x random 3\n    set new-y random 3\n    setxy new-x new-y\n    physics:update-object \"" turtle-name "\"\n    [\n      [ \"patch-coords\" [ new-x new-y ] ]\n    ]\n  ]")
   ][
   ifelse (mode = "geogebra") [
-    set code (word "ask one-of graph-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ \n    set my-name \"something-else\"\n    set label my-name\n   set turtle-name my-name\n   update-coords my-name\n]")
+    set code (word "ask one-of graph-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ \n    set new-x random 3\n    graph:update-point \"" turtle-name "\"\n    [\n      [ \"patch-coords\" [ 5 5 ] ]\n    ]\n  ]")
   ][
   ifelse (mode = "maps") [
-    set code (word "ask one-of map-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ \n    set my-name \"something-else\"\n    set label my-name\n   set turtle-name my-name\n   update-coords my-name\n]")
+    set code (word "ask one-of map-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ \n    setxy 5 5\n    maps:update-marker \"" turtle-name "\"\n    [\n      [ \"patch-coords\" [ 5 5 ] ]\n    [ \"foo\" \"cat\" ]\n]\n  ]")
   ][  
-    set code (word "ask one-of plain-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ \n    set my-name \"something-else\"\n    set label my-name\n  ]")
+    set code ""
   ]]]
 end 
 
@@ -463,34 +466,35 @@ to delete
   ifelse (mode = "maps") [
     set code (word "ask one-of map-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ die ]\n\nmaps:delete-marker \"" turtle-name "\"" )
   ][  
-    set code (word "ask one-of plain-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ die ]" )
-  ]]]
-end 
-
-to output
-  ifelse (mode = "physics") [
-    ; set code ""
-    set code (word "physics:get-objects")
-  ][
-  ifelse (mode = "geogebra") [
-    set code (word "show graph:get-points\n\nshow graph:get-elements")
-  ][
-  if (mode = "maps") [
-    set code (word "show maps:get-markers")
-  ]]]
-end 
-
-to save 
-  ifelse (mode = "physics") [
-    ; set code ""
-    set code (word "set objects physics:get-objects")
-  ][
-  ifelse (mode = "geogebra") [
     set code ""
-    set code (word "set elements graph:get-elements")
+  ]]]
+end 
+
+to get
+  ifelse (mode = "physics") [
+    set code (word ";; get attributes for one object\nshow physics:get \"" turtle-name "\"\n\n;; get attributes for all objects\nshow physics:get-objects")
   ][
-  if (mode = "maps") [
-    set code (word "set markers maps:get-markers")
+  ifelse (mode = "geogebra") [
+    set code (word ";; get attributes for one point\nshow graph:get-point \"" turtle-name "\"\n\n;; get attributes for all points\nshow graph:get-points")
+  ][
+  ifelse (mode = "maps") [
+    set code (word ";; get attributes for one marker\nshow maps:get-marker \"" turtle-name "\"\n\n;; get attributes for all markers\nshow maps:get-markers")
+  ][
+    set code ""
+  ]]]
+end 
+
+to load-save 
+  ifelse (mode = "physics") [
+    set code (word ";; export the environment\nset environment physics:export\nset settings environment[0]\nset objects environment[0]\n\n;; import the same environment\nphysics:import settings objects")
+  ][
+  ifelse (mode = "geogebra") [
+    set code (word ";; export the environment\nset environment graph:export\nset settings environment[0]\nset points environment[0]\n\n;; import the same environment\nphysics:import settings points")
+  ][
+  ifelse (mode = "maps") [
+    set code (word ";; export the environment\nset environment maps:export\nset settings environment[0]\nset markers environment[0]\n\n;; import the same environment\nmaps:import settings markers")
+  ][
+    set code ""
   ]]]
 end
 
@@ -838,8 +842,8 @@ BUTTON
 276
 128
 309
-NIL
-rename
+update
+update
 NIL
 1
 T
@@ -898,7 +902,7 @@ NIL
 INPUTBOX
 15
 315
-287
+307
 514
 code
 NIL
@@ -1035,7 +1039,7 @@ BUTTON
 247
 309
 NIL
-output
+get
 NIL
 1
 T
@@ -1052,7 +1056,7 @@ BUTTON
 308
 308
 NIL
-save
+load-save
 NIL
 1
 T

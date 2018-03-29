@@ -62,15 +62,17 @@ Graph = (function() {
   function resetInterface() {
     $("#appletContainer").css("display","inline-block");
     $(".graph-controls").css("display","inline-block");
-    applet1.getAppletObject().setSize(parseFloat($(".netlogo-canvas").css("width")) - 5, parseFloat($(".netlogo-canvas").css("height")) - 5);
-    var xml = $.parseXML(applet1.getAppletObject().getXML());
-    var $xml = $(xml);
-    var $elements = $xml.find('size');
-    graphWidth = $elements.attr("width");
-    graphHeight = $elements.attr("height"); 
-    viewOffsetWidth = viewWidth - graphWidth;
-    viewOffsetHeight = viewHeight - graphHeight;
-    updateGraph("graphOff");
+    if (applet1.getAppletObject()) {
+      applet1.getAppletObject().setSize(parseFloat($(".netlogo-canvas").css("width")) - 5, parseFloat($(".netlogo-canvas").css("height")) - 5);
+      var xml = $.parseXML(applet1.getAppletObject().getXML());
+      var $xml = $(xml);
+      var $elements = $xml.find('size');
+      graphWidth = $elements.attr("width");
+      graphHeight = $elements.attr("height"); 
+      viewOffsetWidth = viewWidth - graphWidth;
+      viewOffsetHeight = viewHeight - graphHeight;
+      updateGraph("graphOff");
+    }
   }
   
   var canvasLength = 200; 
@@ -100,29 +102,65 @@ Graph = (function() {
     Maps.removeMap();
     Graph.removeGraph();
     world.triggerUpdate();
-    if (elements != "") { 
+    if (elements != "" && applet1.getAppletObject()) { 
       console.log(elements);
       applet1.getAppletObject().setXML(elements); 
     }
     resetInterface();
   }
   
-  function createPoint(name, location) {
-    var xcor = location[0];
-    var ycor = location[1];
-    applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
-  }
-
-  function updatePoint(name, location) {
-    if (applet1.getAppletObject().exists(name)) {
-      var xcor = location[0];
-      var ycor = location[1];
+  function createPoint(name, settings) {
+    var patchCoords = [ 0, 0 ]; 
+    var graphCoords = undefined;
+    for (var i=0; i<settings.length; i++) {
+      key = settings[i][0];
+      value = settings[i][1];
+      switch ( key ) {
+        case "patch-coords": patchCoords = value; break;
+        case "graph-coords": graphCoords = value; break;
+      }
+    }
+    if (!graphCoords) {
+      graphCoords = patchToGraph(patchCoords);
+    } 
+    var xcor = graphCoords[0];
+    var ycor = graphCoords[1]
+    if (applet1.getAppletObject()) {
       applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
     }
+  }
+
+  function updatePoint(name, settings) {
+    var patchCoords = [ 0, 0 ]; 
+    var graphCoords = undefined;
+    for (var i=0; i<settings.length; i++) {
+      key = settings[i][0];
+      value = settings[i][1];
+      switch ( key ) {
+        case "patch-coords": patchCoords = value; break;
+        case "graph-coords": graphCoords = value; break;
+      }
+    }
+    if (patchCoords && !graphCoords) {
+      graphCoords = patchToGraph(patchCoords);
+    } 
+    var xcor = graphCoords[0];
+    var ycor = graphCoords[1]
+    if (applet1.getAppletObject()) {
+      applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
+    }
+    
+    //if (applet1.getAppletObject().exists(name)) {
+    //  var xcor = location[0];
+    //  var ycor = location[1];
+    //  applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
+    //}
   } 
   
   function deletePoint(name) {
-    applet1.getAppletObject().evalCommand("Delete("+name+")");
+    if (applet1.getAppletObject()) {
+      applet1.getAppletObject().evalCommand("Delete("+name+")");
+    }
   } 
   
   function getPoint(name) {
@@ -136,22 +174,24 @@ Graph = (function() {
   } 
   
   function getPoints() {
-    var xml = $.parseXML(applet1.getAppletObject().getXML());
-    var $xml = $(xml);
-    var $elements = $xml.find('construction');
-    var $element, elementType, label;
     var pointsList = [];
-    var point, coords;
-    $($.parseXML(applet1.getAppletObject().getXML())).find("construction element").each(function() {
-      if ($(this).attr("type") === "point") {
-        label = $(this).attr("label");
-        coords = getPoint(label);
-        if (coords != "does not exist") {
-          point = [label, coords];
-          pointsList.push(point);
+    if (applet1.getAppletObject()) {
+      var xml = $.parseXML(applet1.getAppletObject().getXML());
+      var $xml = $(xml);
+      var $elements = $xml.find('construction');
+      var $element, elementType, label;
+      var point, coords;
+      $($.parseXML(applet1.getAppletObject().getXML())).find("construction element").each(function() {
+        if ($(this).attr("type") === "point") {
+          label = $(this).attr("label");
+          coords = getPoint(label);
+          if (coords != "does not exist") {
+            point = [label, coords];
+            pointsList.push(point);
+          }
         }
-      }
-    });
+      });
+    }
     return pointsList;
   }
   
@@ -177,40 +217,46 @@ Graph = (function() {
   function removeGraph() {
     $(".graph-controls").css("display","none");
     $("#appletContainer").css("display","none");
-    var xml = $.parseXML(applet1.getAppletObject().getXML());
-    var $xml = $(xml);
-    var $construction = $xml.find('construction');
-    $construction.find('element').each(function(){
-      Graph.getApplet().getAppletObject().evalCommand("Delete("+$(this).attr('label')+")");
-    });
-    updateGraph("graphOn");
+    if (applet1.getAppletObject()) {
+      var xml = $.parseXML(applet1.getAppletObject().getXML());
+      var $xml = $(xml);
+      var $construction = $xml.find('construction');
+      $construction.find('element').each(function(){
+        Graph.getApplet().getAppletObject().evalCommand("Delete("+$(this).attr('label')+")");
+      });
+      updateGraph("graphOn");
+    }
   }
   
   function getBounds() {
-    var xml = $.parseXML(applet1.getAppletObject().getXML());
-    var $xml = $(xml);
-    var $elements = $xml.find('coordSystem');
-    var xZero = $elements.attr("xZero");
-    var yZero = $elements.attr("yZero");    
-    var scale = $elements.attr("scale");
-    var yscale = $elements.attr("yscale");  
-    $elements = $xml.find('size');
-    var width = $elements.attr("width");
-    var height = $elements.attr("height"); 
-    var xunit = width / scale;
-    var distanceToX = xZero;
-    var xmin = -1 * distanceToX / scale;
-    var distanceFromX = width - xZero;
-    var xmax = distanceFromX / scale;
-    //console.log("xmin/xmax "+xmin+" "+xmax);
-    var yunit = height / scale;
-    var distanceToY = yZero;
-    var ymax = distanceToY / yscale;
-    var distanceFromY = height - yZero;
-    var ymin = -1 * distanceFromY / yscale;  
-    //console.log("ymin/ymax "+ymin+" "+ymax);
-        
-    return ({xmin: xmin, xmax: xmax, ymin: ymin, ymax: ymax});
+    if (applet1.getAppletObject()) {
+      var xml = $.parseXML(applet1.getAppletObject().getXML());
+      var $xml = $(xml);
+      var $elements = $xml.find('coordSystem');
+      var xZero = $elements.attr("xZero");
+      var yZero = $elements.attr("yZero");    
+      var scale = $elements.attr("scale");
+      var yscale = $elements.attr("yscale");  
+      $elements = $xml.find('size');
+      var width = $elements.attr("width");
+      var height = $elements.attr("height"); 
+      var xunit = width / scale;
+      var distanceToX = xZero;
+      var xmin = -1 * distanceToX / scale;
+      var distanceFromX = width - xZero;
+      var xmax = distanceFromX / scale;
+      //console.log("xmin/xmax "+xmin+" "+xmax);
+      var yunit = height / scale;
+      var distanceToY = yZero;
+      var ymax = distanceToY / yscale;
+      var distanceFromY = height - yZero;
+      var ymin = -1 * distanceFromY / yscale;  
+      //console.log("ymin/ymax "+ymin+" "+ymax);
+          
+      return ({xmin: xmin, xmax: xmax, ymin: ymin, ymax: ymax});
+    } else {
+      return ({xmin: 0, xmax: 0, ymin: 0, ymax: 0});
+    }
   }
 
   function getApplet() {
@@ -218,6 +264,7 @@ Graph = (function() {
   }
   
   function evalCommand(cmdString) {
+    if (Graph.getApplet().getAppletObject())
     Graph.getApplet().getAppletObject().evalCommand(cmdString);
   }
   

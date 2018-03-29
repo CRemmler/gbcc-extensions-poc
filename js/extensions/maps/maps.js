@@ -109,32 +109,64 @@ Maps = (function() {
 
   }
   
-  function createMarker(name, location) {
-    var lng = location[0];
-    var lat = location[1];
-    var newLatLng = new L.LatLng(lat, lng);
-    var marker = map ? L.marker(newLatLng).addTo(map) : null;
-    markers[name] = marker;
+  function createMarker(name, settings) {
+    var newLatLng = assignMarkerSettings(name, settings);
+    var leafletMarker = map ? L.marker(newLatLng).addTo(map) : null;
+    markers[name].marker = leafletMarker;
   }
   
-  function updateMarker(name, location) {
-    if (markers[name]) {
-      var lng = location[0];
-      var lat = location[1];
-      var newLatLng = new L.LatLng(lat, lng);
-      markers[name].setLatLng(newLatLng); 
+  function updateMarker(name, settings) {
+    var newLatLng = assignMarkerSettings(name, settings);
+    markers[name].marker.setLatLng(newLatLng);
+  }
+  
+  function assignMarkerSettings(name, settings) {
+    markers[name] = {};
+    markers[name].settings = {};
+    markers[name].settings["patch-coords"] = [ 0, 0 ];
+    markers[name].settings["lngLat"] = undefined;
+    for (var i=0; i<settings.length; i++) {
+      key = settings[i][0];
+      value = settings[i][1];
+      markers[name].settings[key] = value;
     }
+    var lngLat = markers[name].settings["lngLat"];
+    
+    if (!lngLat) {
+      lngLat = patchToLnglat(markers[name].settings["patch-coords"]);
+      markers[name].settings["lngLat"] = lngLat;
+    } 
+    return newLatLng = new L.LatLng(lngLat[0], lngLat[1]);
   }
 
   function getMarker(name) {
     if (markers[name]) {
-      var latLng = markers[name].getLatLng();
+      console.log(markers[name].marker);
+      var results = [];
+      for (var setting in markers[name].settings) {
+        key = setting;
+        value = markers[name].settings[setting];
+        results.push([key, value]);
+      }
+      //var latLng = markers[name].marker.getLatLng();
+      //var lng = latLng.lng;
+      //var lat = latLng.lat;
+      //return [lng, lat];
+      return results;
+    } else {
+      return [ "does not exist" ]
+    }
+    /*
+    console.log(markers);
+    if (markers[name]) {
+      console.log(markers[name].marker);
+      var latLng = markers[name].marker.getLatLng();
       var lng = latLng.lng;
       var lat = latLng.lat;
       return [lng, lat];
     } else {
       return [ "does not exist" ]
-    }
+    }*/
   }
   
   
@@ -143,8 +175,8 @@ Maps = (function() {
     var mark, latLng, lng, lat;
     for (marker in markers) {
       mark = [];
-      mark.push(marker);
-      latLng = markers[marker].getLatLng();
+      mark.push(marker.marker);
+      latLng = markers[marker].marker.getLatLng();
       lng = latLng.lng;
       lat = latLng.lat;
       mark.push([lng, lat]);
@@ -208,7 +240,10 @@ Maps = (function() {
   }
   */
   function deleteMarker(name) {
-    if (map) { map.removeLayer(markers[name]); }
+    if (map) { 
+      map.removeLayer(markers[name].marker); 
+      delete markers[name];
+    }
   }
   
   function removeMap() {
