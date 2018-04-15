@@ -18,8 +18,9 @@
   <script type="text/javascript" src="js/extensions/maps/maps.js"></script>
   <script type="text/javascript" src="js/extensions/physics/Box2D2.js"></script>
   <script type="text/javascript" src="js/extensions/graph/GeoGebra2/deployggb.js"></script>
-  
+  <!--
   <script type="text/javascript" src="https://www.remmler.org/gbcc/js/GeoGebra/deployggb.js"></script>
+-->
   <!--
   <script type="text/javascript" src="https://www.remmler.org/gbcc/js/Box2D.js"></script>
   -->
@@ -232,7 +233,7 @@ to startup
   set mode "none"
   set elements ""
   set objects ""
-  set markers ""
+  set markers []
   setup
 end
 
@@ -279,9 +280,12 @@ to update-coords [name]
       set extension-coordinates patch-coordinates
     ]
     if (mode = "maps") [
-      let coords maps:patch-to-lnglat (list x y)
-      maps:update-marker name coords
-      set extension-coordinates (word "( " precision item 0 coords 2 ", " precision item 1 coords 2 " )")
+      ;;let coords maps:patch-to-lnglat (list x y)
+      let pcoords (list x y)
+      let settings (list (list "coords" pcoords ))
+      maps:update-marker name settings
+      let map-coords maps:patch-to-lnglat pcoords
+      set extension-coordinates (word "( " precision item 0 map-coords 2 ", " precision item 1 map-coords 2 " )")
     ]
     if (mode = "geogebra") [
       let coords graph:patch-to-graph (list x y)
@@ -304,11 +308,11 @@ end
 
 to gbcc-on-map-update
   ask map-turtles [
-    let map-coords maps:get-marker my-name
+    let coords maps:get-marker my-name "patch-coords"
     st 
     pd
-    if (item 0 map-coords != "does not exist") [
-      let coords maps:lnglat-to-patch map-coords
+    if (item 0 coords != "does not exist") [
+      ;;let coords maps:lnglat-to-patch map-coords
       ;;show coords
       ifelse ( item 0 coords = "out of bounds") [
         ht
@@ -324,11 +328,11 @@ end
 
 to gbcc-on-graph-update
   ask graph-turtles [
-    let graph-coords graph:get-point my-name
+    let coords graph:get-point my-name "patch-coords"
     st 
     pd
-    if (item 0 graph-coords != "does not exist") [
-      let coords graph:graph-to-patch graph-coords
+    if (item 0 coords != "does not exist") [
+      ;;let coords graph:graph-to-patch graph-coords
       ifelse ( item 0 coords = "out of bounds") [
         ht
         pu
@@ -357,9 +361,10 @@ to maps
   set mode "maps"
   let zoom 10
   let location (list 30.307182 -97.755996)
+  let settings (list zoom location)
   show "import maps"
   ;;show markers
-  maps:import (list (list zoom location) markers)
+  maps:import (list settings markers)
   setup
 end
 
@@ -430,7 +435,9 @@ to create
     ;set code (word "create-map-turtles 1 [ \n    set size 4 \n    set shape \"turtle\"\n    set my-name word \"object\" who\n    set label my-name \n    pd\n    set label-color black\n    set turtle-name my-name\n\n    physics:create-object (word \"body-\" my-name)\n      [ [ \"type-of-object\" \"body\"]\n      [ \"patch-coords\" (list my-x my-y) ] ]\n\n    physics:create-object (word \"shape-\" my-name)\n      [ [ \"type-of-object\" \"shape\" ]\n      [ \"relative-coords\" [ 0 0 ] ] ]\n\n    ;physics:connect-who-to-object who (word \"body-\" my-name) \n] ")
   ][
   ifelse (mode = "geogebra") [
-    set code (word "create-graph-turtles 1 [ \n    set size 4 \n    set shape \"turtle\"\n    set my-name word \"point\" who\n    set label my-name \n    pd\n    set label-color black\n    set turtle-name my-name\n    setxy 0 0\n    graph:create-point (word "" my-name)\n      [ \"patch-coords\" [ 0 0 ] ]\n]")
+    ;;set code (word "create-graph-turtles 1 [ \n    set size 4 \n    set shape \"turtle\"\n    set my-name word \"point\" who\n    set label my-name \n    pd\n    set label-color black\n    set turtle-name my-name\n    setxy 0 0\n    graph:create-point (word "" my-name)\n      [ \"patch-coords\" [ 0 0 ] ]\n]")
+    set code (word "create-graph-turtles 1 [ \n    set size 4 \n    set shape \"turtle\"\n    set my-name word \"point\" who\n    set label my-name \n    pd\n    set label-color black\n    set turtle-name my-name\n    setxy 0 0\n    graph:create-point (word "" my-name) [\n      [ \"patch-coords\" [ 0 0 ] ]\n      [ \"foo\" \"bar\" ]   \n    ] \n]")
+
   ][
   ifelse (mode = "maps") [
     set code (word "create-map-turtles 1 [ \n    set size 4 \n    set shape \"turtle\"\n    set my-name word \"marker\" who\n    set label my-name \n    pd\n    set label-color black\n    set turtle-name my-name\n    setxy 0 0\n    maps:create-marker (word "" my-name) [\n      [ \"patch-coords\" [ 0 0 ] ]\n      [ \"foo\" \"bar\" ]   \n    ] \n]")
@@ -447,10 +454,10 @@ to update
     set code (word "ask one-of physics-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ \n    set new-x random 3\n    set new-y random 3\n    setxy new-x new-y\n    physics:update-object \"" turtle-name "\"\n    [\n      [ \"patch-coords\" [ new-x new-y ] ]\n    ]\n  ]")
   ][
   ifelse (mode = "geogebra") [
-    set code (word "ask one-of graph-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ \n    set new-x random 3\n    graph:update-point \"" turtle-name "\"\n    [\n      [ \"patch-coords\" [ 5 5 ] ]\n    ]\n  ]")
+    set code (word "ask one-of graph-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ \n    setxy 5 5\n    graph:update-point \"" turtle-name "\"\n    [\n      [ \"patch-coords\" [ 5 5 ] ]\n      [ \"foo\" \"cat\" ]\n    ]\n  ]")
   ][
   ifelse (mode = "maps") [
-    set code (word "ask one-of map-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ \n    setxy 5 5\n    maps:update-marker \"" turtle-name "\"\n    [\n      [ \"patch-coords\" [ 5 5 ] ]\n    [ \"foo\" \"cat\" ]\n]\n  ]")
+    set code (word "ask one-of map-turtles with\n  [my-name = \"" turtle-name "\"]\n  [ \n    setxy 5 5\n    maps:update-marker \"" turtle-name "\"\n    [\n      [ \"patch-coords\" [ 5 5 ] ]\n      [ \"foo\" \"cat\" ]\n    ]\n  ]")
   ][  
     set code ""
   ]]]
@@ -472,19 +479,20 @@ end
 
 to get
   ifelse (mode = "physics") [
-    set code (word ";; get attributes for one object\nshow physics:get \"" turtle-name "\"\n\n;; get attributes for all objects\nshow physics:get-objects")
+  ;  set code (word ";; get attributes for one object\nshow physics:get \"" turtle-name "\"\n\n;; get attributes for all objects\nshow physics:get-objects")
   ][
   ifelse (mode = "geogebra") [
-    set code (word ";; get attributes for one point\nshow graph:get-point \"" turtle-name "\"\n\n;; get attributes for all points\nshow graph:get-points")
+  ;  set code (word ";; get attributes for one point\nshow graph:get-point \"" turtle-name "\"\n\n;; get attributes for all points\nshow graph:get-points")
+    set code (word ";; get attributes for one point\nshow graph:get-point \"" turtle-name "\" \"patch-coords\"\n\nshow graph:get-point \"" turtle-name "\" \"foo\"\n\n;; get attributes for all points\nshow graph:get-points")
   ][
   ifelse (mode = "maps") [
-    set code (word ";; get attributes for one marker\nshow maps:get-marker \"" turtle-name "\"\n\n;; get attributes for all markers\nshow maps:get-markers")
+    set code (word ";; get attributes for one marker\nshow maps:get-marker \"" turtle-name "\" \"patch-coords\"\n\nshow maps:get-marker \"" turtle-name "\" \"foo\"\n\n;; get attributes for all markers\nshow maps:get-markers")
   ][
     set code ""
   ]]]
 end 
 
-to load-save 
+to import-export 
   ifelse (mode = "physics") [
     set code (word ";; export the environment\nset environment physics:export\nset settings environment[0]\nset objects environment[0]\n\n;; import the same environment\nphysics:import settings objects")
   ][
@@ -492,7 +500,7 @@ to load-save
     set code (word ";; export the environment\nset environment graph:export\nset settings environment[0]\nset points environment[0]\n\n;; import the same environment\nphysics:import settings points")
   ][
   ifelse (mode = "maps") [
-    set code (word ";; export the environment\nset environment maps:export\nset settings environment[0]\nset markers environment[0]\n\n;; import the same environment\nmaps:import settings markers")
+    set code (word ";; export the environment\nlet environment maps:export\nlet settings item 0 environment\nset markers item 1 environment\n\n;; import the same environment\nmaps:import (list settings markers)\n\n;; or directly import what you export\nmaps:import maps:export")
   ][
     set code ""
   ]]]
@@ -1036,7 +1044,7 @@ NIL
 BUTTON
 192
 276
-247
+217
 309
 NIL
 get
@@ -1051,12 +1059,12 @@ NIL
 1
 
 BUTTON
-253
+223
 275
 308
 308
 NIL
-load-save
+import-export
 NIL
 1
 T

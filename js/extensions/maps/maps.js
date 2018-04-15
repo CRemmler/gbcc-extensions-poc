@@ -106,7 +106,8 @@ Maps = (function() {
   }
   
   function exportMap() {
-
+    //returns a list of settings and markers 
+    return [ [zoom, location], getMarkers() ];
   }
   
   function createMarker(name, settings) {
@@ -116,13 +117,17 @@ Maps = (function() {
   }
   
   function updateMarker(name, settings) {
+    console.log("update marker ",name,settings)
     var newLatLng = assignMarkerSettings(name, settings);
-    markers[name].marker.setLatLng(newLatLng);
+    try {
+      markers[name].marker.setLatLng(newLatLng);
+    } catch(ex) {
+    }
   }
   
   function assignMarkerSettings(name, settings) {
-    markers[name] = {};
-    markers[name].settings = {};
+    if (!markers[name]) { markers[name] = {}; }
+    if (!markers[name].settings) { markers[name].settings = {}; }
     markers[name].settings["patch-coords"] = [ 0, 0 ];
     markers[name].settings["lngLat"] = undefined;
     for (var i=0; i<settings.length; i++) {
@@ -131,7 +136,6 @@ Maps = (function() {
       markers[name].settings[key] = value;
     }
     var lngLat = markers[name].settings["lngLat"];
-    
     if (!lngLat) {
       lngLat = patchToLnglat(markers[name].settings["patch-coords"]);
       markers[name].settings["lngLat"] = lngLat;
@@ -139,34 +143,13 @@ Maps = (function() {
     return newLatLng = new L.LatLng(lngLat[0], lngLat[1]);
   }
 
-  function getMarker(name) {
-    if (markers[name]) {
-      console.log(markers[name].marker);
-      var results = [];
-      for (var setting in markers[name].settings) {
-        key = setting;
-        value = markers[name].settings[setting];
-        results.push([key, value]);
+  function getMarker(name, key) {
+    if (markers[name] && markers[name].settings) {
+      if (markers[name].settings[key]) {
+        return markers[name].settings[key];
       }
-      //var latLng = markers[name].marker.getLatLng();
-      //var lng = latLng.lng;
-      //var lat = latLng.lat;
-      //return [lng, lat];
-      return results;
-    } else {
-      return [ "does not exist" ]
     }
-    /*
-    console.log(markers);
-    if (markers[name]) {
-      console.log(markers[name].marker);
-      var latLng = markers[name].marker.getLatLng();
-      var lng = latLng.lng;
-      var lat = latLng.lat;
-      return [lng, lat];
-    } else {
-      return [ "does not exist" ]
-    }*/
+    return [ "does not exist" ]
   }
   
   
@@ -174,13 +157,13 @@ Maps = (function() {
     var markerList = [];
     var mark, latLng, lng, lat;
     for (marker in markers) {
-      mark = [];
-      mark.push(marker.marker);
-      latLng = markers[marker].marker.getLatLng();
-      lng = latLng.lng;
-      lat = latLng.lat;
-      mark.push([lng, lat]);
-      markerList.push(mark);
+      markerSettings = [];
+      for (setting in markers[marker].settings) {
+        mark = [ setting, markers[marker].settings[setting]];
+        markerSettings.push(mark);
+      }
+      markerList.push([marker, markerSettings]);
+      
     }
     return markerList;
   }
@@ -189,56 +172,6 @@ Maps = (function() {
     return markers;
   }
   
-  /*
-
-  function setMarkerXY(name, settings) {
-    var xcor = settings[0];
-    var ycor = settings[1];
-    var pixelX = universe.view.xPcorToCanvas(xcor);
-    var pixelY = universe.view.yPcorToCanvas(ycor);
-    var pixelPercentX = 1 - (pixelX / (viewWidth * 2));
-    var pixelPercentY = (pixelY / (viewHeight * 2));
-    var boundaries = map.getBounds();
-    var boundaryMinX = boundaries._northEast.lng;
-    var boundaryMinY = boundaries._northEast.lat;
-    var boundaryMaxX = boundaries._southWest.lng;
-    var boundaryMaxY = boundaries._southWest.lat;
-    var markerX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
-    var markerY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
-    var newLatLng = new L.LatLng(markerY, markerX);
-    markers[name].setLatLng(newLatLng); 
-  }
-  
-  function getMarkerXY(name) {
-    var markerPosition = markers[name].getPosition();
-    var markerPositionX = markerPosition.lng();
-    var markerPositionY = markerPosition.lat();
-    var boundaries = map.getBounds();
-    var boundaryMinX = boundaries._northEast.lng;
-    var boundaryMinY = boundaries._northEast.lat;
-    var boundaryMaxX = boundaries._southWest.lng;
-    var boundaryMaxY = boundaries._southWest.lat;
-    var markerPercentX = 1 - ((boundaryMaxX - markerPositionX) / (boundaryMaxX - boundaryMinX));
-    var markerPercentY = (boundaryMaxY - markerPositionY) / (boundaryMaxY - boundaryMinY);
-    var pixelX = markerPercentX * viewWidth;
-    var pixelY = markerPercentY * viewHeight;
-    var patchXcor = universe.view.xPixToPcor(pixelX);
-    var patchYcor = universe.view.yPixToPcor(pixelY);
-    return ([patchXcor, patchYcor]);
-  }
-  
-  function setMarkerLngLat(name, settings) {
-    var lng = settings[0];
-    var lat = settings[1];
-    var newLatLng = new L.LatLng(lng, lat);
-    markers[name].setLatLng(newLatLng); 
-  }
-  
-  function getMarkerLngLat(name) {
-    var markerPosition = markers[name].getLatLng();
-    return ([markerPosition.lng, markerPosition.lat]);
-  }
-  */
   function deleteMarker(name) {
     if (map) { 
       map.removeLayer(markers[name].marker); 

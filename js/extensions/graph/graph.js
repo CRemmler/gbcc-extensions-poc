@@ -7,6 +7,7 @@ Graph = (function() {
   var viewOffsetHeight;
   var graphWidth;
   var graphHeight;
+  var points = {};
   
   function setupInterface() {
     viewWidth = parseFloat($(".netlogo-canvas").css("width"));
@@ -97,65 +98,46 @@ Graph = (function() {
     //Images.clearImage();
     var settings = data[0];
     var elements = data[1];
-    console.log("import graph");
     Physics.removePhysics();
     Maps.removeMap();
     Graph.removeGraph();
     world.triggerUpdate();
     if (elements != "" && applet1.getAppletObject()) { 
-      console.log(elements);
       applet1.getAppletObject().setXML(elements); 
     }
     resetInterface();
   }
   
   function createPoint(name, settings) {
-    var patchCoords = [ 0, 0 ]; 
-    var graphCoords = undefined;
+    assignPointSettings(name, settings);
+  }
+  
+  function updatePoint(name, settings) {
+    assignPointSettings(name, settings);
+  }
+  
+  function assignPointSettings(name, settings) {
+    console.log("assign point settings",name,settings);
+    if (!points[name]) { points[name] = {}; }
+    if (!points[name].settings) { points[name].settings = {}; }
+    points[name].settings["patch-coords"] = [ 0, 0 ];
+    points[name].settings["graph-coords"] = undefined;
     for (var i=0; i<settings.length; i++) {
       key = settings[i][0];
       value = settings[i][1];
-      switch ( key ) {
-        case "patch-coords": patchCoords = value; break;
-        case "graph-coords": graphCoords = value; break;
-      }
+      points[name].settings[key] = value;
     }
+    var graphCoords = points[name].settings["graph-coords"];
     if (!graphCoords) {
-      graphCoords = patchToGraph(patchCoords);
+      graphCoords = patchToGraph(points[name].settings["patch-coords"]);
+      points[name].settings["graph-coords"] = graphCoords;
     } 
-    var xcor = graphCoords[0];
-    var ycor = graphCoords[1]
-    if (applet1.getAppletObject()) {
-      applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
+    try {
+      applet1.getAppletObject().evalCommand(name+" = Point({"+graphCoords[0]+", "+graphCoords[1]+"})");
+    } catch (ex) {
+      console.log("cannot add point to applet")
     }
   }
-
-  function updatePoint(name, settings) {
-    var patchCoords = [ 0, 0 ]; 
-    var graphCoords = undefined;
-    for (var i=0; i<settings.length; i++) {
-      key = settings[i][0];
-      value = settings[i][1];
-      switch ( key ) {
-        case "patch-coords": patchCoords = value; break;
-        case "graph-coords": graphCoords = value; break;
-      }
-    }
-    if (patchCoords && !graphCoords) {
-      graphCoords = patchToGraph(patchCoords);
-    } 
-    var xcor = graphCoords[0];
-    var ycor = graphCoords[1]
-    if (applet1.getAppletObject()) {
-      applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
-    }
-    
-    //if (applet1.getAppletObject().exists(name)) {
-    //  var xcor = location[0];
-    //  var ycor = location[1];
-    //  applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
-    //}
-  } 
   
   function deletePoint(name) {
     if (applet1.getAppletObject()) {
@@ -163,37 +145,32 @@ Graph = (function() {
     }
   } 
   
-  function getPoint(name) {
-    if (applet1.getAppletObject().exists(name)) {
-      var xcor = applet1.getAppletObject().getXcoord(name);
-      var ycor = applet1.getAppletObject().getYcoord(name);
-      return [xcor, ycor];
-    } else {
-      return [ "does not exist" ]
+  function getPoint(name, key) {
+    if (points[name] && points[name].settings) {
+      if (points[name].settings[key]) {
+        return points[name].settings[key];
+      }
     }
-  } 
+    return [ "does not exist" ]
+  }
   
   function getPoints() {
-    var pointsList = [];
-    if (applet1.getAppletObject()) {
-      var xml = $.parseXML(applet1.getAppletObject().getXML());
-      var $xml = $(xml);
-      var $elements = $xml.find('construction');
-      var $element, elementType, label;
-      var point, coords;
-      $($.parseXML(applet1.getAppletObject().getXML())).find("construction element").each(function() {
-        if ($(this).attr("type") === "point") {
-          label = $(this).attr("label");
-          coords = getPoint(label);
-          if (coords != "does not exist") {
-            point = [label, coords];
-            pointsList.push(point);
-          }
-        }
-      });
+    var pointList = [];
+    var mark;
+    for (point in points) {
+      pointSettings = [];
+      for (setting in points[point].settings) {
+        mark = [ setting, points[point].settings[setting]];
+        pointSettings.push(mark);
+      }
+      pointList.push([point, pointSettings]);
+      
     }
-    return pointsList;
+    return pointList;
+    
+    return [];
   }
+  
   
   function getElements() {
     var results = [];
@@ -275,57 +252,6 @@ Graph = (function() {
   function evalCommandCAS(cmdString) {
     return Graph.getApplet().getAppletObject().evalCommandCAS(cmdString);
   }
-  /*
-  function setPointXY(name, settings) {
-    var xcor = settings[0];
-    var ycor = settings[1];
-    var pixelX = universe.view.xPcorToCanvas(xcor);
-    var pixelY = universe.view.yPcorToCanvas(ycor);
-    pixelX -= (viewOffsetWidth * 2);
-    pixelY -= (viewOffsetHeight * 2);
-    var pixelPercentX = (pixelX / (graphWidth * 2));
-    var pixelPercentY = 1 - (pixelY / (graphHeight* 2));
-    var boundaries = getBounds();
-    var boundaryMinX = boundaries.xmin;
-    var boundaryMinY = boundaries.ymin;
-    var boundaryMaxX = boundaries.xmax;
-    var boundaryMaxY = boundaries.ymax;
-    var pointX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
-    var pointY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
-    applet1.getAppletObject().evalCommand(name+" = Point({"+pointX+", "+pointY+"})");
-  }
-  function getPointXY(name) {
-    
-    var xcor = applet1.getAppletObject().getXcoord(name);
-    var ycor = applet1.getAppletObject().getYcoord(name);
-
-    
-    var pointPositionX = pointPosition.lng();
-    var pointPositionY = pointPosition.lat();
-    
-    var boundaries = getBounds();
-    var boundaryMinX = boundaries.xmin;
-    var boundaryMinY = boundaries.ymin;
-    var boundaryMaxX = boundaries.xmax;
-    var boundaryMaxY = boundaries.ymax;
-    
-    var pointPercentX = 1 - ((boundaryMaxX - pointPositionX) / (boundaryMaxX - boundaryMinX));
-    var pointPercentY = (boundaryMaxY - pointPositionY) / (boundaryMaxY - boundaryMinY);
-    var pixelX = pointPercentX * graphWidth;
-    var pixelY = pointPercentY * graphHeight;
-    pixelX += (viewOffsetWidth * 2);    
-    pixelY += (viewOffsetHeight * 2);
-    
-    var patchXcor = universe.view.xPixToPcor(pixelX);
-    var patchYcor = universe.view.yPixToPcor(pixelY);
-    return ([patchXcor, patchYcor]);
-  }
-  function setPointGXY(name, settings) {
-    var xcor = location[0];
-    var ycor = location[1];
-    //console.log("set point graph xy "+xcor+" "+ycor);
-    applet1.getAppletObject().evalCommand(name+" = Point({"+xcor+", "+ycor+"})");
-  }*/
   
   function patchToGraph(coords) {
     var xcor = coords[0];
@@ -377,13 +303,6 @@ Graph = (function() {
     var patchYcor = universe.view.yPixToPcor(pixelY);
     return ([patchXcor, patchYcor]);
   }
-  /*
-  function getPointGXY(name) {
-    var xcor = applet1.getAppletObject().getXcoord(name);
-    var ycor = applet1.getAppletObject().getYcoord(name);
-    //console.log("get point graph xy "+xcor+" "+ycor);
-    return ([xcor, ycor]);
-  }*/
 
   return {
     
@@ -399,10 +318,6 @@ Graph = (function() {
     evalCommand: evalCommand,
     evalCommandGetLabels: evalCommandGetLabels,
     evalCommandCAS: evalCommandCAS,
-    //setPointXY: setPointXY,
-    //getPointXY: getPointXY,
-    //setPointGXY: setPointGXY,
-    //getPointGXY: getPointGXY,
     patchToGraph: patchToGraph,
     graphToPatch: graphToPatch,
     removeGraph: removeGraph

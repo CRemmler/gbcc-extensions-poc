@@ -18429,46 +18429,72 @@ function hasOwnProperty(obj, prop) {
   module.exports = {
     dumper: void 0,
     init: function(workspace) {
-      var createPoint, deletePoint, equation, evalCommand, evalCommandCAS, evalCommandGetLabels, exportGraph, getElements, getPoint, getPoints, graphToPatch, importGraph, patchToGraph, removeGraph, updatePoint;
-      equation = function(phrase, xmin, xmax, ymin, ymax, patchesPerGridX, patchesPerGridY, xAxis, yAxis, gridsPerPatchX) {
-        var deltaX, point, pointsList, x, y;
-        if (xmin > xmax || gridsPerPatchX <= 0) {
-          return;
-        }
-        pointsList = [];
-        deltaX = gridsPerPatchX;
-        x = xmin;
-        while (x <= xmax) {
-          try {
-            y = eval(phrase.replace("x", x));
-          } catch (undefined) {}
-          point = [];
-          point[0] = x;
-          point[1] = y;
-          point[2] = Math.round(x * patchesPerGridX + yAxis);
-          point[3] = Math.round(y * patchesPerGridY + xAxis);
-          pointsList.push(point);
-          x = x + deltaX;
-        }
-        return pointsList;
+      var appendConstructions, createGraph, createPoint, createPoints, deleteGraph, deletePoint, deletePoints, evalCommand, evalCommandCas, evalCommandGetLabels, exportGraph, getConstructions, getLabel, getPoints, getX, getXy, getY, graphToPatch, hideGraph, importGraph, patchToGraph, setConstructions, setElements, setLabel, setX, setXy, setY;
+      createGraph = function() {
+        return Graph.createGraph();
       };
-      createPoint = function(name, settings) {
-        return Graph.createPoint(name, settings);
+      deleteGraph = function() {
+        return Graph.deleteGraph();
       };
-      updatePoint = function(name, settings) {
-        return Graph.updatePoint(name, settings);
+      hideGraph = function() {
+        return Graph.hideGraph();
       };
-      deletePoint = function(name) {
-        return Graph.deletePoint(name);
+      importGraph = function(data) {
+        return Graph.importGraph(data);
       };
-      getPoint = function(name) {
-        return Graph.getPoint(name);
+      exportGraph = function() {
+        return Graph.exportGraph();
+      };
+      createPoint = function(name, center) {
+        return Graph.createPoint(name, center);
+      };
+      createPoints = function(data) {
+        return Graph.createPoints(data);
       };
       getPoints = function() {
         return Graph.getPoints();
       };
-      getElements = function() {
-        return Graph.getElements();
+      deletePoints = function() {
+        return Graph.deletePoints();
+      };
+      getConstructions = function() {
+        return Graph.getConstructions();
+      };
+      setConstructions = function(data) {
+        return Graph.setConstructions(data);
+      };
+      appendConstructions = function(data) {
+        return Graph.appendConstructions(data);
+      };
+      setX = function(name, xcor) {
+        return Graph.setX(name, xcor);
+      };
+      setY = function(name, ycor) {
+        return Graph.setY(name, ycor);
+      };
+      setXy = function(name, center) {
+        return Graph.setXy(name, center);
+      };
+      setLabel = function(name, label) {
+        return Graph.setLabel(name, label);
+      };
+      setElements = function(xml) {
+        return Graph.setElements(xml);
+      };
+      getX = function(name) {
+        return Graph.getX(name);
+      };
+      getY = function(name) {
+        return Graph.getY(name);
+      };
+      getXy = function(name) {
+        return Graph.getXy(name);
+      };
+      getLabel = function(name) {
+        return Graph.getLabel(name);
+      };
+      deletePoint = function(name) {
+        return Graph.deletePoint(name);
       };
       graphToPatch = function(coords) {
         return Graph.graphToPatch(coords);
@@ -18476,42 +18502,45 @@ function hasOwnProperty(obj, prop) {
       patchToGraph = function(coords) {
         return Graph.patchToGraph(coords);
       };
-      importGraph = function(settings) {
-        return Graph.importGraph(settings);
+      evalCommand = function(command) {
+        return Graph.evalCommand(command);
       };
-      exportGraph = function(settings) {
-        return Graph.exportGraph();
+      evalCommandCas = function(command) {
+        return Graph.evalCommandCas(command);
       };
-      evalCommand = function(cmdString) {
-        return Graph.evalCommand(cmdString);
-      };
-      evalCommandGetLabels = function(cmdString) {
-        return Graph.evalCommandGetLabels(cmdString);
-      };
-      evalCommandCAS = function(cmdString) {
-        return Graph.evalCommandCAS(cmdString);
-      };
-      removeGraph = function() {
-        Graph.removeGraph();
+      evalCommandGetLabels = function(command) {
+        return Graph.evalCommandGetLabels(command);
       };
       return {
         name: "graph",
         prims: {
-          "IMPORT": importGraph,
-          "EXPORT": exportGraph,
-          "EQUATION": equation,
+          "CREATE-GRAPH": createGraph,
+          "DELETE-GRAPH": deleteGraph,
+          "HIDE-GRAPH": hideGraph,
+          "IMPORT-GRAPH": importGraph,
+          "EXPORT-GRAPH": exportGraph,
           "CREATE-POINT": createPoint,
-          "UPDATE-POINT": updatePoint,
+          "CREATE-POINTS": createPoints,
+          "GET-POINTS": getPoints,
+          "DELETE-POINTS": deletePoints,
+          "GET-CONSTRUCTIONS": getConstructions,
+          "SET-CONSTRUCTIONS": setConstructions,
+          "APPEND-CONSTRUCTIONS": appendConstructions,
+          "SET-X": setX,
+          "SET-Y": setY,
+          "SET-XY": setXy,
+          "SET-LABEL": setLabel,
+          "SET-ELEMENTS": setElements,
+          "GET-X": getX,
+          "GET-Y": getY,
+          "GET-XY": getXy,
+          "GET-LABEL": getLabel,
           "DELETE-POINT": deletePoint,
           "GRAPH-TO-PATCH": graphToPatch,
           "PATCH-TO-GRAPH": patchToGraph,
           "EVAL-COMMAND": evalCommand,
-          "EVAL-COMMAND-GET-LABELS": evalCommandGetLabels,
-          "EVAL-COMMAND-CAS": evalCommandCAS,
-          "REMOVE": removeGraph,
-          "GET-POINT": getPoint,
-          "GET-POINTS": getPoints,
-          "GET-ELEMENTS": getElements
+          "EVAL-COMMAND-CAS": evalCommandCas,
+          "EVAL-COMMAND-GET-LABELS": evalCommandGetLabels
         }
       };
     }
@@ -18669,54 +18698,102 @@ function hasOwnProperty(obj, prop) {
   module.exports = {
     dumper: void 0,
     init: function(workspace) {
-      var createMarker, deleteMarker, exportMap, getMarker, getMarkers, importMap, lnglatToPatch, patchToLnglat, pointsToMarkers, removeMap, updateMarker;
-      importMap = function(settings) {
-        return Maps.importMap(settings);
+      var createMap, createMarker, createMarkers, deleteMap, deleteMarker, deleteMarkers, exportMap, getCenterLatlng, getLabel, getLat, getLatlng, getLng, getZoom, hideMap, importMap, latlngToPatch, patchToLatlng, setCenterLatlng, setLabel, setLat, setLatlng, setLng, setZoom;
+      createMap = function() {
+        return Maps.createMap();
       };
-      exportMap = function(settings) {
+      deleteMap = function() {
+        return Maps.deleteMap();
+      };
+      hideMap = function() {
+        return Maps.hideMap();
+      };
+      importMap = function(data) {
+        return Maps.importMap(data);
+      };
+      exportMap = function() {
         return Maps.exportMap();
       };
-      createMarker = function(name, settings) {
-        return Maps.createMarker(name, settings);
+      setZoom = function(zoom) {
+        return Maps.setZoom(zoom);
       };
-      updateMarker = function(name, settings) {
-        return Maps.updateMarker(name, settings);
+      getZoom = function() {
+        return Maps.getZoom();
+      };
+      setCenterLatlng = function(coords) {
+        return Maps.setCenterLatlng(coords);
+      };
+      getCenterLatlng = function() {
+        return Maps.getCenterLatlng();
+      };
+      createMarker = function(name, coords) {
+        return Maps.createMarker(name, coords);
+      };
+      createMarkers = function(data) {
+        return Maps.createMarkers(data);
+      };
+      setLat = function(name, lat) {
+        return Maps.setLat(name, lat);
+      };
+      setLng = function(name, lng) {
+        return Maps.setLng(name, lng);
+      };
+      setLatlng = function(name, latlng) {
+        return Maps.setLatlng(name, latlng);
+      };
+      setLabel = function(name, label) {
+        return Maps.setLabel(name, label);
+      };
+      getLat = function(name) {
+        return Maps.getLat(name);
+      };
+      getLng = function(name) {
+        return Maps.getLng(name);
+      };
+      getLatlng = function(name) {
+        return Maps.getLatlng(name);
+      };
+      getLabel = function(name) {
+        return Maps.getLabel(name);
       };
       deleteMarker = function(name) {
         return Maps.deleteMarker(name);
       };
-      getMarker = function(name) {
-        return Maps.getMarker(name);
+      deleteMarkers = function() {
+        return Maps.deleteMarkers();
       };
-      getMarkers = function() {
-        return Maps.getMarkers();
+      latlngToPatch = function(coords) {
+        return Maps.latlngToPatch(coords);
       };
-      patchToLnglat = function(coords) {
-        return Maps.patchToLnglat(coords);
-      };
-      lnglatToPatch = function(coords) {
-        return Maps.lnglatToPatch(coords);
-      };
-      pointsToMarkers = function(points) {
-        return Maps.pointsToMarkers(points);
-      };
-      removeMap = function() {
-        Maps.removeMap();
+      patchToLatlng = function(coords) {
+        return Maps.patchToLatlng(coords);
       };
       return {
         name: "maps",
         prims: {
-          "IMPORT": importMap,
-          "EXPORT": exportMap,
+          "CREATE-MAP": createMap,
+          "DELETE-MAP": deleteMap,
+          "HIDE-MAP": hideMap,
+          "IMPORT-MAP": importMap,
+          "EXPORT-MAP": exportMap,
+          "SET-ZOOM": setZoom,
+          "GET-ZOOM": getZoom,
+          "SET-CENTER-LATLNG": setCenterLatlng,
+          "GET-CENTER-LATLNG": getCenterLatlng,
           "CREATE-MARKER": createMarker,
-          "UPDATE-MARKER": updateMarker,
+          "CREATE-MARKERS": createMarkers,
+          "SET-LAT": setLat,
+          "SET-LNG": setLng,
+          "SET-LATLNG": setLatlng,
+          "SET-LABEL": setLabel,
+          "GET-LAT": getLat,
+          "GET-LNG": getLng,
+          "GET-LATLNG": getLatlng,
+          "GET-LABEL": getLabel,
           "DELETE-MARKER": deleteMarker,
-          "GET-MARKER": getMarker,
-          "PATCH-TO-LNGLAT": patchToLnglat,
-          "LNGLAT-TO-PATCH": lnglatToPatch,
-          "REMOVE": removeMap,
-          "GET-MARKERS": getMarkers,
-          "POINTS-TO-MARKERS": pointsToMarkers
+          "DELETE-MARKERS": deleteMarkers,
+          "LATLNG-TO-PATCH": latlngToPatch,
+          "PATCH-TO-LATLNG": patchToLatlng
         }
       };
     }
@@ -18856,57 +18933,358 @@ function hasOwnProperty(obj, prop) {
   module.exports = {
     dumper: void 0,
     init: function(workspace) {
-      var applyForce, connectWhoToObject, createObject, deleteObject, disconnectWho, getObject, getObjects, importPhysics, patchToWorld, removePhysics, updateObject, worldToPatch;
-      importPhysics = function(settings) {
-        return Physics.importPhysics(settings);
+      var applyAngularImpulse, applyForce, applyForceRelativeAngle, applyLinearImpulse, applyLinearImpulseRelativeAngle, applyTorque, connectWhoToObject, createBody, createCircle, createLine, createPolygon, createTarget, createWorld, deleteBody, deleteCircle, deleteLine, deletePolygon, deleteTarget, deleteWorld, disconnectWho, exportWorld, getBodyAngle, getBodyAngularVelocity, getBodyBehavior, getBodyCoords, getBodyLinearVelocity, getCircleBodyId, getCircleCenter, getCircleDensity, getCircleFriction, getCircleRadius, getCircleRelativeCenter, getCircleRestitution, getGravityXy, getLineBodyId, getLineDensity, getLineEndpoints, getLineFriction, getLineRelativeEndpoints, getLineRestitution, getPolygonDensity, getPolygonFriction, getPolygonId, getPolygonRelativeVertices, getPolygonRestitution, getPolygonVertices, getTargetBodyId, getTargetCenter, getTargetRelativeCenter, getTimeStep, getVelocityIterations, getWrapXy, hideWorld, importWorld, setBodyAngle, setBodyAngularVelocity, setBodyBehavior, setBodyCoords, setBodyLinearVelocity, setCircleBodyId, setCircleCenter, setCircleDensity, setCircleFriction, setCircleRadius, setCircleRelativeCenter, setCircleRestitution, setGravityXy, setLineBodyId, setLineDensity, setLineEndpoints, setLineFriction, setLineRelativeEndpoints, setLineRestitution, setPolygonBodyId, setPolygonDensity, setPolygonFriction, setPolygonRelativeVertices, setPolygonRestitution, setPolygonVertices, setPositionIterations, setTargetBodyId, setTargetCenter, setTargetRelativeCenter, setTimeStep, setVelocityIterations, setWrapXy;
+      createWorld = function() {
+        return Physics.createWorld();
       };
-      createObject = function(name, settings) {
-        return Physics.createObject(name, settings);
+      hideWorld = function() {
+        return Physics.hideWorld();
       };
-      updateObject = function(name, settings) {
-        return Physics.updateObject(name, settings);
+      deleteWorld = function() {
+        return Physics.deleteWorld();
       };
-      applyForce = function(name, settings) {
-        return Physics.applyForce(name, settings);
+      importWorld = function(data) {
+        return Physics.importWorld(data);
+      };
+      exportWorld = function() {
+        return Physics.exportWorld();
+      };
+      setGravityXy = function(data) {
+        return Physics.setGravityXy(data);
+      };
+      getGravityXy = function() {
+        return Physics.getGravityXy();
+      };
+      setWrapXy = function(data) {
+        return Physics.setWrapXy(data);
+      };
+      getWrapXy = function() {
+        return Physics.getWrapXy();
+      };
+      setTimeStep = function(time) {
+        return Physics.setTimeStep(time);
+      };
+      getTimeStep = function() {
+        return Physics.getTimeStep();
+      };
+      setVelocityIterations = function(iterations) {
+        return Physics.setVelocityIterations(iterations);
+      };
+      getVelocityIterations = function() {
+        return Physics.getVelocityIterations();
+      };
+      setPositionIterations = function(iterations) {
+        return Physics.setPositionIterations(iterations);
+      };
+      getVelocityIterations = function() {
+        return Physics.getVelocityIterations();
+      };
+      createBody = function(name) {
+        return Physics.createBody(name);
+      };
+      createLine = function(name, body) {
+        return Physics.createLine(name, body);
+      };
+      createCircle = function(name, body) {
+        return Physics.createCircle(name, body);
+      };
+      createPolygon = function(name, body) {
+        return Physics.createPolygon(name, body);
+      };
+      createTarget = function(name, body) {
+        return Physics.createTarget(name, body);
+      };
+      setBodyBehavior = function(name, behavior) {
+        return Physics.setBodyBehavior(name, behavior);
+      };
+      setBodyCoords = function(name, coords) {
+        return Physics.setBodyCoords(name, coords);
+      };
+      setBodyAngle = function(name, angle) {
+        return Physics.setBodyAngle(name, angle);
+      };
+      setBodyLinearVelocity = function(name, coords) {
+        return Physics.setBodyLinearVelocity(name, coords);
+      };
+      setBodyAngularVelocity = function(name, velocity) {
+        return Physics.setBodyAngularVelocity(name, velocity);
+      };
+      setLineBodyId = function(name, body) {
+        return Physics.setLineBodyId(name, body);
+      };
+      setLineRelativeEndpoints = function(name, point1, point2) {
+        return Physics.setLineRelativeEndpoints(name, point1, point2);
+      };
+      setLineEndpoints = function(name, point1, point2) {
+        return Physics.setLineEndpoints(name, point1, point2);
+      };
+      setLineFriction = function(name, friction) {
+        return Physics.setLineFriction(name, friction);
+      };
+      setLineDensity = function(name, density) {
+        return Physics.setLineDensity(name, density);
+      };
+      setLineRestitution = function(name, restitution) {
+        return Physics.setLineRestitution(name, restitution);
+      };
+      setCircleBodyId = function(name, body) {
+        return Physics.setCircleBodyId(name, body);
+      };
+      setCircleRadius = function(name, radius) {
+        return Physics.setCircleRadius(name, radius);
+      };
+      setCircleRelativeCenter = function(name, center) {
+        return Physics.setCircleRelativeCenter(name, center);
+      };
+      setCircleCenter = function(name, center) {
+        return Physics.setCircleCenter(name, center);
+      };
+      setCircleFriction = function(name, friction) {
+        return Physics.setCircleFriction(name, friction);
+      };
+      setCircleDensity = function(name, density) {
+        return Physics.setCircleDensity(name, density);
+      };
+      setCircleRestitution = function(name, restitution) {
+        return Physics.setCircleRestitution(name, restitution);
+      };
+      setPolygonBodyId = function(name, body) {
+        return Physics.setPolygonBodyId(name, body);
+      };
+      setPolygonRelativeVertices = function(name, vertices) {
+        return Physics.setPolygonRelativeVertices(name, vertices);
+      };
+      setPolygonVertices = function(name, vertices) {
+        return Physics.setPolygonVertices(name, vertices);
+      };
+      setPolygonFriction = function(name, friction) {
+        return Physics.setPolygonFriction(name, friction);
+      };
+      setPolygonDensity = function(name, density) {
+        return Physics.setPolygonDensity(name, density);
+      };
+      setPolygonRestitution = function(name, restitution) {
+        return Physics.setPolygonRestitution(name, restitution);
+      };
+      setTargetBodyId = function(name, body) {
+        return Physics.setTargetBodyId(name, body);
+      };
+      setTargetRelativeCenter = function(name, center) {
+        return Physics.setTargetRelativeCenter(name, center);
+      };
+      setTargetCenter = function(name, center) {
+        return Physics.setTargetCenter(name, center);
+      };
+      getBodyBehavior = function(name) {
+        return Physics.getBodyBehavior(name);
+      };
+      getBodyCoords = function(name) {
+        return Physics.getBodyCoords(name);
+      };
+      getBodyAngle = function(name) {
+        return Physics.getBodyAngle(name);
+      };
+      getBodyLinearVelocity = function(name) {
+        return Physics.getBodyLinearVelocity(name);
+      };
+      getBodyAngularVelocity = function(name) {
+        return Physics.getBodyAngularVelocity(name);
+      };
+      getLineBodyId = function(name) {
+        return Physics.getLineBodyId(name);
+      };
+      getLineRelativeEndpoints = function(name) {
+        return Physics.getLineRelativeEndpoints(name);
+      };
+      getLineEndpoints = function(name) {
+        return Physics.getLineEndpoints(name);
+      };
+      getLineFriction = function(name) {
+        return Physics.getLineFriction(name);
+      };
+      getLineDensity = function(name) {
+        return Physics.getLineDensity(name);
+      };
+      getLineRestitution = function(name) {
+        return Physics.getLineRestitution(name);
+      };
+      getCircleBodyId = function(name) {
+        return Physics.getCircleBodyId(name);
+      };
+      getCircleRadius = function(name) {
+        return Physics.getCircleRadius(name);
+      };
+      getCircleRelativeCenter = function(name) {
+        return Physics.getCircleRelativeCenter(name);
+      };
+      getCircleCenter = function(name) {
+        return Physics.getCircleCenter(name);
+      };
+      getCircleFriction = function(name) {
+        return Physics.getCircleFriction(name);
+      };
+      getCircleDensity = function(name) {
+        return Physics.getCircleDensity(name);
+      };
+      getCircleRestitution = function(name) {
+        return Physics.getCircleRestitution(name);
+      };
+      getPolygonId = function(name) {
+        return Physics.getPolygonId(name);
+      };
+      getPolygonRelativeVertices = function(name) {
+        return Physics.getPolygonRelativeVertices(name);
+      };
+      getPolygonVertices = function(name) {
+        return Physics.getPolygonVertices(name);
+      };
+      getPolygonFriction = function(name) {
+        return Physics.getPolygonFriction(name);
+      };
+      getPolygonDensity = function(name) {
+        return Physics.getPolygonDensity(name);
+      };
+      getPolygonRestitution = function(name) {
+        return Physics.getPolygonRestitution(name);
+      };
+      getTargetBodyId = function(name) {
+        return Physics.getTargetBodyId(name);
+      };
+      getTargetRelativeCenter = function(name) {
+        return Physics.getTargetRelativeCenter(name);
+      };
+      getTargetCenter = function(name) {
+        return Physics.getTargetCenter(name);
+      };
+      deleteBody = function(name) {
+        return Physics.deleteBody(name);
+      };
+      deleteLine = function(name) {
+        return Physics.deleteLine(name);
+      };
+      deleteCircle = function(name) {
+        return Physics.deleteCircle(name);
+      };
+      deletePolygon = function(name) {
+        return Physics.deletePolygon(name);
+      };
+      deleteTarget = function(name) {
+        return Physics.deleteTarget(name);
+      };
+      applyForce = function(name, force, angle) {
+        return Physics.applyForce(name, force, angle);
+      };
+      applyForceRelativeAngle = function(name, force, angle) {
+        return Physics.applyForceRelativeAngle(name, force, angle);
+      };
+      applyLinearImpulse = function(name, force, angle) {
+        return Physics.applyLinearImpulse(name, force, angle);
+      };
+      applyLinearImpulseRelativeAngle = function(name, force, angle) {
+        return Physics.applyLinearImpulseRelativeAngle(name, force, angle);
+      };
+      applyTorque = function(name, force) {
+        return Physics.applyTorque(name, force);
+      };
+      applyAngularImpulse = function(name, force) {
+        return Physics.applyAngularImpulse(name, force);
       };
       connectWhoToObject = function(who, name) {
         return Physics.connectWhoToObject(who, name);
       };
-      disconnectWho = function(who, name) {
+      disconnectWho = function(who) {
         return Physics.disconnectWho(who);
-      };
-      deleteObject = function(name) {
-        return Physics.deleteObject(name);
-      };
-      getObject = function(name) {
-        return Physics.getObject(name);
-      };
-      getObjects = function() {
-        return Physics.getObjects();
-      };
-      removePhysics = function() {
-        Physics.removePhysics();
-      };
-      patchToWorld = function(coords) {
-        return Physics.patchToWorld(coords);
-      };
-      worldToPatch = function(coords) {
-        return Physics.worldToPatch(coords);
       };
       return {
         name: "physics",
         prims: {
-          "IMPORT": importPhysics,
-          "CREATE-OBJECT": createObject,
-          "UPDATE-OBJECT": updateObject,
-          "DELETE-OBJECT": deleteObject,
+          "CREATE-WORLD": createWorld,
+          "HIDE-WORLD": hideWorld,
+          "DELETE-WORLD": deleteWorld,
+          "IMPORT-WORLD": importWorld,
+          "EXPORT-WORLD": exportWorld,
+          "SET-GRAVITY-XY": setGravityXy,
+          "GET-GRAVITY-XY": getGravityXy,
+          "SET-WRAP-XY": setWrapXy,
+          "GET-WRAP-XY": getWrapXy,
+          "SET-TIME-STEP": setTimeStep,
+          "GET-TIME-STEP": getTimeStep,
+          "SET-VELOCITY-ITERATIONS": setVelocityIterations,
+          "GET-VELOCITY-ITERATIONS": getVelocityIterations,
+          "SET-POSITION-ITERATIONS": setPositionIterations,
+          "GET-VELOCITY-ITERATIONS": getVelocityIterations,
+          "CREATE-BODY": createBody,
+          "CREATE-LINE": createLine,
+          "CREATE-CIRCLE": createCircle,
+          "CREATE-POLYGON": createPolygon,
+          "CREATE-TARGET": createTarget,
+          "SET-BODY-BEHAVIOR": setBodyBehavior,
+          "SET-BODY-COORDS": setBodyCoords,
+          "SET-BODY-ANGLE": setBodyAngle,
+          "SET-BODY-LINEAR-VELOCITY": setBodyLinearVelocity,
+          "SET-BODY-ANGULAR-VELOCITY": setBodyAngularVelocity,
+          "SET-LINE-BODY-ID": setLineBodyId,
+          "SET-LINE-RELATIVE-ENDPOINTS": setLineRelativeEndpoints,
+          "SET-LINE-ENDPOINTS": setLineEndpoints,
+          "SET-LINE-FRICTION": setLineFriction,
+          "SET-LINE-DENSITY": setLineDensity,
+          "SET-LINE-RESTITUTION": setLineRestitution,
+          "SET-CIRCLE-BODY-ID": setCircleBodyId,
+          "SET-CIRCLE-RADIUS": setCircleRadius,
+          "SET-CIRCLE-RELATIVE-CENTER": setCircleRelativeCenter,
+          "SET-CIRCLE-CENTER": setCircleCenter,
+          "SET-CIRCLE-FRICTION": setCircleFriction,
+          "SET-CIRCLE-DENSITY": setCircleDensity,
+          "SET-CIRCLE-RESTITUTION": setCircleRestitution,
+          "SET-POLYGON-BODY-ID": setPolygonBodyId,
+          "SET-POLYGON-RELATIVE-VERTICES": setPolygonRelativeVertices,
+          "SET-POLYGON-VERTICES": setPolygonVertices,
+          "SET-POLYGON-FRICTION": setPolygonFriction,
+          "SET-POLYGON-DENSITY": setPolygonDensity,
+          "SET-POLYGON-RESTITUTION": setPolygonRestitution,
+          "SET-TARGET-BODY-ID": setTargetBodyId,
+          "SET-TARGET-RELATIVE-CENTER": setTargetRelativeCenter,
+          "SET-TARGET-CENTER": setTargetCenter,
+          "GET-BODY-BEHAVIOR": getBodyBehavior,
+          "GET-BODY-COORDS": getBodyCoords,
+          "GET-BODY-ANGLE": getBodyAngle,
+          "GET-BODY-LINEAR-VELOCITY": getBodyLinearVelocity,
+          "GET-BODY-ANGULAR-VELOCITY": getBodyAngularVelocity,
+          "GET-LINE-BODY-ID": getLineBodyId,
+          "GET-LINE-RELATIVE-ENDPOINTS": getLineRelativeEndpoints,
+          "GET-LINE-ENDPOINTS": getLineEndpoints,
+          "GET-LINE-FRICTION": getLineFriction,
+          "GET-LINE-DENSITY": getLineDensity,
+          "GET-LINE-RESTITUTION": getLineRestitution,
+          "GET-CIRCLE-BODY-ID": getCircleBodyId,
+          "GET-CIRCLE-RADIUS": getCircleRadius,
+          "GET-CIRCLE-RELATIVE-CENTER": getCircleRelativeCenter,
+          "GET-CIRCLE-CENTER": getCircleCenter,
+          "GET-CIRCLE-FRICTION": getCircleFriction,
+          "GET-CIRCLE-DENSITY": getCircleDensity,
+          "GET-CIRCLE-RESTITUTION": getCircleRestitution,
+          "GET-POLYGON-ID": getPolygonId,
+          "GET-POLYGON-RELATIVE-VERTICES": getPolygonRelativeVertices,
+          "GET-POLYGON-VERTICES": getPolygonVertices,
+          "GET-POLYGON-FRICTION": getPolygonFriction,
+          "GET-POLYGON-DENSITY": getPolygonDensity,
+          "GET-POLYGON-RESTITUTION": getPolygonRestitution,
+          "GET-TARGET-BODY-ID": getTargetBodyId,
+          "GET-TARGET-RELATIVE-CENTER": getTargetRelativeCenter,
+          "GET-TARGET-CENTER": getTargetCenter,
+          "DELETE-BODY": deleteBody,
+          "DELETE-LINE": deleteLine,
+          "DELETE-CIRCLE": deleteCircle,
+          "DELETE-POLYGON": deletePolygon,
+          "DELETE-TARGET": deleteTarget,
+          "APPLY-FORCE": applyForce,
+          "APPLY-FORCE-RELATIVE-ANGLE": applyForceRelativeAngle,
+          "APPLY-LINEAR-IMPULSE": applyLinearImpulse,
+          "APPLY-LINEAR-IMPULSE-RELATIVE-ANGLE": applyLinearImpulseRelativeAngle,
+          "APPLY-TORQUE": applyTorque,
+          "APPLY-ANGULAR-IMPULSE": applyAngularImpulse,
           "CONNECT-WHO-TO-OBJECT": connectWhoToObject,
-          "DISCONNECT-WHO": disconnectWho,
-          "GET-OBJECT": getObject,
-          "REMOVE": removePhysics,
-          "PATCH-TO-WORLD": patchToWorld,
-          "WORLD-TO-PATCH": worldToPatch,
-          "GET-OBJECTS": getObjects
+          "DISCONNECT-WHO": disconnectWho
         }
       };
     }
