@@ -12,7 +12,7 @@
   },
   "galleryJs": {
     "allowTabs": true, 
-    "allowMultipleLayers": false, 
+    "allowMultipleLayers": true, 
     "allowMultipleSelections": true, 
     "allowCanvasForeverButtons": true, 
     "allowGalleryControls": true, 

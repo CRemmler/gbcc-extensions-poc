@@ -93,6 +93,7 @@ Interface = (function() {
       ($("#tips").css("display") === "none") ? $("#tips").css("display","inline-block") : $("#tips").css("display","none"); 
     });
     $("#exportHtmlButton").css("display","none");
+    setupExtensions();
   }
 
   function displayTeacherInterface(room, components) {
@@ -235,12 +236,15 @@ Interface = (function() {
   }
 
   function showItems(min, max) {
-    console.log(min+" "+max);
     $(".netlogo-widget").addClass("hidden");
     $(".netlogo-model-title").removeClass("hidden");
     for (var i=min; i<=max; i++) {
       $("#"+items[i]).removeClass("hidden");
     }
+  }
+  
+  function setupExtensions() {
+    Graph.setupInterface();
   }
   
   function importImageFile() {

@@ -249,6 +249,14 @@
     View.prototype.yPixToPcor = function(y) {
       return (-this.worldHeight * y / this.visibleCanvas.clientHeight + 2 * this.worldHeight - this.offsetY()) % this.worldHeight + this.minpycor - .5;
     };
+    
+    View.prototype.xPcorToPix = function(x) {
+      return ((((this.worldWidth / 2) - this.centerX) + x) / this.worldWidth) * this.visibleCanvas.clientWidth;
+    };
+
+    View.prototype.yPcorToPix = function(y) {
+      return ( (1 - ( ( ( (this.worldHeight / 2) - this.centerY) + y) / this.worldHeight)) * this.visibleCanvas.clientHeight);
+    };
 
     View.prototype.xPcorToCanvas = function(x) {
       return (x - this.minpxcor + .5) / this.worldWidth * this.visibleCanvas.width;

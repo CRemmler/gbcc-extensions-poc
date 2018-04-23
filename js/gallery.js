@@ -50,7 +50,7 @@ Gallery = (function() {
       $(".netlogo-gallery-tab").append(galleryExpandSpan);
       $( window ).resize(function() {
         if ($(".netlogo-gallery-tab").hasClass("expand")) {
-          var galleryExpandWidth = parseFloat($("body").css("width")) - parseFloat($(".netlogo-model").css("width"));
+          var galleryExpandWidth = parseFloat($("body").css("width")) - parseFloat($(".netlogo-tab").css("width"));
           $(".netlogo-gallery-tab").css("width", galleryExpandWidth - 80 + "px");
           $(".netlogo-gallery-tab-content").css("width", galleryExpandWidth - 62 + "px");
           var galleryTabWidth =  galleryExpandWidth - 98 + "px";
@@ -68,7 +68,7 @@ Gallery = (function() {
         } else {
           $(".netlogo-gallery-tab").addClass("expand");
           $(".netlogo-gallery-tab-content").addClass("expand");
-          var galleryExpandWidth = parseFloat($("body").css("width")) - parseFloat($(".netlogo-model").css("width"));
+          var galleryExpandWidth = parseFloat($("body").css("width")) - parseFloat($(".netlogo-tab").css("width"));
           $(".netlogo-gallery-tab").css("width", galleryExpandWidth - 80 + "px");
           $(".netlogo-gallery-tab-content").css("width", galleryExpandWidth - 62 + "px");
           var galleryTabWidth =  galleryExpandWidth - 98 + "px";
