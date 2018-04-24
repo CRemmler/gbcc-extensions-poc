@@ -70,25 +70,13 @@ Graph = (function() {
   
   function findGraphBoundaries() {
     console.log("findGraphBoundaries");
-    //var xml = applet1.getAppletObject().getXML();
-    //var $xml = $(xml);
-    //var $element = $xml.find('size')[0];
-    //if ($element) {
-    //  graphWidth = parseFloat($element.getAttribute("width"));
-    //  graphHeight = parseFloat($element.getAttribute("height"));
-    //} else {
-    //  graphWidth = viewWidth;
-    //  graphHeight = viewHeight;
-    //}
-    
     var properties = JSON.parse(applet1.getAppletObject().getViewProperties());
-
     graphWidth = properties.width;
     graphHeight = properties.height;
     applet1.getAppletObject().setSize(viewWidth, viewHeight);
     viewOffsetWidth = viewWidth - graphWidth;
     viewOffsetHeight = viewHeight - graphHeight;
-    console.log(graphWidth,graphHeight,viewWidth,viewHeight,viewOffsetWidth,viewOffsetHeight);
+    //console.log(graphWidth,graphHeight,viewWidth,viewHeight,viewOffsetWidth,viewOffsetHeight);
   }
   
   function resetInterface() {
@@ -101,6 +89,7 @@ Graph = (function() {
   var canvasLength = 200; 
   var canvasWidth = 200;
 
+  /*
   function scaleCanvas(sourceWidth, sourceHeight) {
     var dataObj = {};
     var ratio = sourceWidth / sourceHeight;
@@ -110,7 +99,7 @@ Graph = (function() {
     dataObj.width = width;
     dataObj.height = height;
     return dataObj;
-  }
+  }*/
     
   function triggerGraphUpdate() {
     if (procedures.gbccOnGraphUpdate != undefined) { session.run('gbcc-on-graph-update'); }
@@ -245,10 +234,10 @@ Graph = (function() {
   function getBounds() {
     if (applet1.getAppletObject()) {
       //applet1.getAppletObject().setSize(viewWidth, viewHeight);
-      applet1.getAppletObject().setWidth(viewWidth);
-      applet1.getAppletObject().setHeight(viewHeight);
-      console.log("set width and height "+viewWidth+" "+viewHeight);
-      applet1.getAppletObject().setSize(viewWidth,viewHeight);
+      ///applet1.getAppletObject().setWidth(viewWidth);
+      //applet1.getAppletObject().setHeight(viewHeight);
+      //console.log("set width and height "+viewWidth+" "+viewHeight);
+      //applet1.getAppletObject().setSize(viewWidth,viewHeight);
       var properties = JSON.parse(applet1.getAppletObject().getViewProperties());
       var xMin = properties.xMin;
       var yMin = properties.yMin;;    
@@ -256,6 +245,8 @@ Graph = (function() {
       var yScale = properties.invYscale;
       width = viewWidth;
       height = viewHeight;
+      //var width = properties.width;
+      //var height = properties.height;
       var xMax = width * xScale + xMin; // how many sections there are  
       var yMax = height * yScale + yMin;
       return {xmin: xMin, xmax: xMax , ymin: yMin, ymax: yMax};
