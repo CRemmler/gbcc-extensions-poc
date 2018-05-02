@@ -171,7 +171,7 @@ jQuery(document).ready(function() {
         if ($.isEmptyObject(foreverButtonCode)) { clearInterval(myVar); }
         break;
       case "forever-select":
-        if ($.isEmptyObject(foreverButtonCode)) { myVar = setInterval(runForeverButtonCode, 200); }
+        if ($.isEmptyObject(foreverButtonCode)) { myVar = setInterval(runForeverButtonCode, 1000); }
         foreverButtonCode[data.userId] = data.key;
         break;
     }
@@ -179,6 +179,7 @@ jQuery(document).ready(function() {
 
   var myVar = "";
   function runForeverButtonCode() {
+    //console.log("run forever button code");
     for (userId in foreverButtonCode) { 
       if (procedures.gbccOnGo != undefined) {
         session.runObserverCode(foreverButtonCode[userId]); 

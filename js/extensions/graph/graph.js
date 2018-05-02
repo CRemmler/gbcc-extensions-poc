@@ -7,9 +7,12 @@ Graph = (function() {
   var viewOffsetHeight;
   var graphWidth;
   var graphHeight;
+  var boundaries;
   var points = {};
-  var currentApplet = "";
-  var evalCmdToggle = 0;
+  //var currentApplet = "";
+  //var evalCmdToggle = 0;
+  //var canvasWidth = 200;
+
   
   function setupInterface() {
     //console.log("setup interface");
@@ -53,6 +56,7 @@ Graph = (function() {
       $("#appletContainer").removeClass("selected");
       $(".netlogo-view-container").css("z-index","1");
       drawPatches = false;
+      findGraphBoundaries();
     }
     world.triggerUpdate();
   }
@@ -69,14 +73,42 @@ Graph = (function() {
   }
   
   function findGraphBoundaries() {
-    console.log("findGraphBoundaries");
-    var properties = JSON.parse(applet1.getAppletObject().getViewProperties());
-    graphWidth = properties.width;
-    graphHeight = properties.height;
-    applet1.getAppletObject().setSize(viewWidth, viewHeight);
-    viewOffsetWidth = viewWidth - graphWidth;
-    viewOffsetHeight = viewHeight - graphHeight;
-    //console.log(graphWidth,graphHeight,viewWidth,viewHeight,viewOffsetWidth,viewOffsetHeight);
+    if (ggbApplet) {
+      var properties = JSON.parse(ggbApplet.getViewProperties());
+      graphWidth = properties.width;
+      graphHeight = properties.height;
+      viewOffsetWidth = viewWidth - graphWidth;
+      viewOffsetHeight = viewHeight - graphHeight;
+      var xMin = properties.xMin;
+      var yMin = properties.yMin;;    
+      var xScale = properties.invXscale;
+      var yScale = properties.invYscale;
+      //width = viewWidth;
+      //height = viewHeight;
+      //var xMax = width * xScale + xMin; // how many sections there are  
+      //var yMax = height * yScale + yMin;
+      var xMax = graphWidth * xScale + xMin; // how many sections there are  
+      var yMax = graphHeight * yScale + yMin;
+      
+      boundaries = {xmin: xMin, xmax: xMax , ymin: yMin, ymax: yMax};
+    }
+  }
+
+  function getBounds() {
+    if (ggbApplet) {
+      var properties = JSON.parse(ggbApplet.getViewProperties());
+      var xMin = properties.xMin;
+      var yMin = properties.yMin;;    
+      var xScale = properties.invXscale;
+      var yScale = properties.invYscale;
+      width = viewWidth;
+      height = viewHeight;
+      var xMax = width * xScale + xMin; // how many sections there are  
+      var yMax = height * yScale + yMin;
+      boundaries = {xmin: xMin, xmax: xMax , ymin: yMin, ymax: yMax};
+    } else {
+      boundaries = {xmin: 0, xmax: 0, ymin: 0, ymax: 0};
+    }
   }
   
   function resetInterface() {
@@ -86,8 +118,6 @@ Graph = (function() {
     updateGraph("graphOff");
   }
   
-  var canvasLength = 200; 
-  var canvasWidth = 200;
 
   /*
   function scaleCanvas(sourceWidth, sourceHeight) {
@@ -115,8 +145,8 @@ Graph = (function() {
     Maps.removeMap();
     Graph.removeGraph();
     world.triggerUpdate();
-    if (elements != "" && applet1.getAppletObject()) { 
-      applet1.getAppletObject().setXML(elements); 
+    if (elements != "" && ggbApplet) { 
+      ggbApplet.setXML(elements); 
     }
     resetInterface();
   }
@@ -159,15 +189,15 @@ Graph = (function() {
       points[name].settings["graph-coords"] = graphCoords;
     } 
     try {
-      applet1.getAppletObject().evalCommand(name+" = Point({"+graphCoords[0]+", "+graphCoords[1]+"})");
+      ggbApplet.evalCommand(name+" = Point({"+graphCoords[0]+", "+graphCoords[1]+"})");
     } catch (ex) {
       console.log("cannot add point to applet")
     }
   }
   
   function deletePoint(name) {
-    if (applet1.getAppletObject()) {
-      applet1.getAppletObject().evalCommand("Delete("+name+")");
+    if (ggbApplet) {
+      ggbApplet.evalCommand("Delete("+name+")");
     }
   } 
   
@@ -214,14 +244,14 @@ Graph = (function() {
     //console.log(results);
     return results;
 
-    //return applet1.getAppletObject().getXML()
+    //return ggbApplet.getXML()
   }
 
   function removeGraph() {
     $(".graph-controls").css("display","none");
     $("#appletContainer").css("display","none");
-    if (applet1.getAppletObject()) {
-      var xml = $.parseXML(applet1.getAppletObject().getXML());
+    if (ggbApplet) {
+      var xml = $.parseXML(ggbApplet.getXML());
       var $xml = $(xml);
       var $construction = $xml.find('construction');
       $construction.find('element').each(function(){
@@ -231,29 +261,7 @@ Graph = (function() {
     }
   }
   */
-  function getBounds() {
-    if (applet1.getAppletObject()) {
-      //applet1.getAppletObject().setSize(viewWidth, viewHeight);
-      ///applet1.getAppletObject().setWidth(viewWidth);
-      //applet1.getAppletObject().setHeight(viewHeight);
-      //console.log("set width and height "+viewWidth+" "+viewHeight);
-      //applet1.getAppletObject().setSize(viewWidth,viewHeight);
-      var properties = JSON.parse(applet1.getAppletObject().getViewProperties());
-      var xMin = properties.xMin;
-      var yMin = properties.yMin;;    
-      var xScale = properties.invXscale;
-      var yScale = properties.invYscale;
-      width = viewWidth;
-      height = viewHeight;
-      //var width = properties.width;
-      //var height = properties.height;
-      var xMax = width * xScale + xMin; // how many sections there are  
-      var yMax = height * yScale + yMin;
-      return {xmin: xMin, xmax: xMax , ymin: yMin, ymax: yMax};
-    } else {
-      return {xmin: 0, xmax: 0, ymin: 0, ymax: 0};
-    }
-  }
+
   function getApplet() {
     return applet1;
   }
@@ -268,11 +276,13 @@ Graph = (function() {
   }
   
   function evalCommandCAS(cmdString) {
-    return Graph.getApplet().getAppletObject().evalCommandCAS(cmdString);
+    return ggbApplet.evalCommand(cmdString);
   }
   */
   
   function patchToGraph(coords) {
+    //console.log(coords);
+    applet1.getAppletObject().setSize(viewWidth + Math.random()*2, viewHeight + Math.random()*2);
     if (!viewOffsetWidth) {
       findGraphBoundaries(); 
     }
@@ -280,27 +290,32 @@ Graph = (function() {
     var ycor = coords[1];
     var pixelX = universe.view.xPcorToPix(xcor);
     var pixelY = universe.view.yPcorToPix(ycor);
-    pixelX -= (viewOffsetWidth / 2);
-    pixelY -= (viewOffsetHeight / 2);
+    pixelX -= (viewOffsetWidth );
+    pixelY -= (viewOffsetHeight );
     var pixelPercentX = (pixelX / (graphWidth));
     var pixelPercentY = 1 - (pixelY / (graphHeight));
-    var boundaries = getBounds();
+    //var boundaries = getBounds();
     var boundaryMinX = boundaries.xmin;
     var boundaryMinY = boundaries.ymin;
     var boundaryMaxX = boundaries.xmax;
     var boundaryMaxY = boundaries.ymax;
     var pointX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
     var pointY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
+    //console.log([pointX, pointY]);
     return [pointX, pointY];
+    
+    //return [ 0,Math.random(2)]
   }
   
   function graphToPatch(coords) {
+    //console.log(coords);
+    applet1.getAppletObject().setSize(viewWidth + Math.random()*2, viewHeight + Math.random()*2);
     if (!viewOffsetWidth) {
       findGraphBoundaries(); 
     }
     var pointPositionX = coords[0];
     var pointPositionY = coords[1];
-    var boundaries = getBounds();
+    //var boundaries = getBounds();
     var boundaryMinX = boundaries.xmin;
     var boundaryMinY = boundaries.ymin;
     var boundaryMaxX = boundaries.xmax;
@@ -319,7 +334,10 @@ Graph = (function() {
     pixelY += (viewOffsetHeight / 2);
     var patchXcor = universe.view.xPixToPcor(pixelX);
     var patchYcor = universe.view.yPixToPcor(pixelY);
+    //console.log([patchXcor, patchYcor]);
     return ([patchXcor, patchYcor]);
+    
+    //return [0, Math.random(2)];
   }
   
   function getXml() {
@@ -366,7 +384,7 @@ Graph = (function() {
     }
   }
   function getPoints() { 
-    var xml = applet1.getAppletObject().getXML();
+    var xml = ggbApplet.getXML();
     var $xml = $(xml);
     var $construction = $xml.find("construction");
     var $elements = $construction.find("element");
@@ -403,10 +421,10 @@ Graph = (function() {
   }
   function deletePoints() { }
   function getConstructions() { 
-    return applet1.getAppletObject().getXML();
+    return ggbApplet.getXML();
   }
   function setConstructions(data) { 
-    applet1.getAppletObject().setXML(data);
+    ggbApplet.setXML(data);
   }
   function appendConstructions(data) { }
   /*function setX(name, xcor) { }
@@ -423,7 +441,7 @@ Graph = (function() {
   function getLabel(name) { }
   function deletePoint(name) { 
     evalCommand("Delete("+name+")");
-    //applet1.getAppletObject().evalCommand("Delete("+name+")");
+    //ggbApplet.evalCommand("Delete("+name+")");
   }
   //function graphToPatch(coords) { }
   //function patchToGraph(coords) { }
@@ -431,7 +449,9 @@ Graph = (function() {
   
   function evalCommand(cmdString) {
     try {
-      applet1.getAppletObject().evalCommand(cmdString);
+      console.log(cmdString);
+      //ggbApplet.evalCommand(cmdString);
+      ggbApplet.evalCommand(cmdString);
     } catch (ex) {
       console.log("cannot evalCommand")
     }
@@ -440,13 +460,19 @@ Graph = (function() {
   function adjustSize() {
     if (viewWidth && viewHeight) {
       //console.log("set it at ",viewWidth,viewHeight)
-      applet1.getAppletObject().setWidth(viewWidth + random(1)*10);
-      applet1.getAppletObject().setHeight(viewHeight + random(1)*10); 
+      ggbApplet.setWidth(viewWidth + random(1)*10);
+      ggbApplet.setHeight(viewHeight + random(1)*10); 
     }
   }
 
-  function evalCommandCas(command) { }
-  function evalCommandGetLabels(command) { }
+  function evalCommandCas(command) { 
+    console.log(command);
+    return 0
+  }
+  
+  function evalCommandGetLabels(command) {
+      return ggbApplet.getValue(command);
+   }
 
   return {
     /*

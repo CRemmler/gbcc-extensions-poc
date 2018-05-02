@@ -7,7 +7,7 @@ var exportworld = require('./export/exportworld.js');
 var formidable = require('formidable');
 var fs = require("node-fs");
 var markdown = require("markdown").markdown;
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 var myTimer;
 var schools = {};
  

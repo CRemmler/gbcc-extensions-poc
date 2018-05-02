@@ -113,6 +113,8 @@ Gallery = (function() {
       canvasLength = 500; canvasWidth = 500;
       imageQuality = 0.75;
     }
+    $("body").append("<canvas id=\"avatarCanvasView\" width=\"300\" height=\"300\" style=\"display:none\"></canvas>");
+
   }
   
   function selectAll() {
@@ -171,13 +173,14 @@ Gallery = (function() {
     });
   }
   
-  assignZIndex();
+  //assignZIndex();
   
   function assignZIndex() {
     $("li").each(function() {
       var index = 0;
       $(this).children().each( function() {
         if ($(this).hasClass("card")) {
+          //console.log("give it index",index);
           $(this).css("z-index",index);
           index++;
         }
@@ -253,6 +256,7 @@ Gallery = (function() {
   }
 
   function arrowClickHandler(thisSpan) {
+    //console.log("arrow clicked");
     var direction = $(thisSpan).hasClass("arrow-left") ? "left" : "right";
     var cards = [];
     $(thisSpan).parent().children().each(function() {
@@ -273,7 +277,6 @@ Gallery = (function() {
         session.compileObserverCode("gbcc-forever-button-code-"+userId, "gbcc-on-teacher-go \""+userId+"\"");
       } else {
         if (procedures.gbccOnGo != undefined) {
-          //console.log("compile student code");
           session.compileObserverCode("gbcc-forever-button-code-"+userId, "gbcc-on-go \""+userId+"\"");
         }
       }
@@ -316,9 +319,12 @@ Gallery = (function() {
       $(".canvasSize").val("Small");
       $(".gbcc-gallery").addClass("small");
     }
-    var newLiHtml = "<li id='gallery-item-"+data.userId+"' usertype='"+data.userType+"' userid='"+data.userId+"'>";
-    newLiHtml += "<span class=\"arrow arrow-left z20\"><i class='fa fa-chevron-left' aria-hidden='true'></i></span>";
-    newLiHtml += "<span class=\"arrow arrow-right z20\"><i class='fa fa-chevron-right' aria-hidden='true'></i></span>";
+    //var newLiHtml = "<li id='gallery-item-"+data.userId+"' usertype='"+data.userType+"' userid='"+data.userId+"'>";
+    var newLiHtml = "<li id='gallery-item-"+data.userId+"' usertype='"+data.userType+"' userid='"+data.userId+"' ";
+    newLiHtml += (myUserId === data.userId) ? "myUser=\"true\">" : "myUser=\"false\">";
+    newLiHtml += (myUserId === data.userId) ? "<span class=\"label z20 selected\">"+label+"</span>" : "<span class=\"label z20\">"+label+"</span>";
+    newLiHtml += "<span class=\"arrow arrow-left z20\"></span>";//"<i class='fa fa-chevron-left' aria-hidden='true'></i></span>";
+    newLiHtml += "<span class=\"arrow arrow-right z20\"></span>";//"<i class='fa fa-chevron-right' aria-hidden='true'></i></span>";
     if (allowCanvasForeverButtons) {
       newLiHtml += "<span class=\"forever-icon z20\"><i class='fa fa-refresh' aria-hidden='true'></i></span>";
     } else {
@@ -335,7 +341,7 @@ Gallery = (function() {
   }
   
   function createImageCard(data) {
-    console.log("create image card");
+    //console.log("create image card");
     var canvasImg = new Image();
     canvasImg.id = data.id;
     data.id = data.id.replace(" ","-");
@@ -346,10 +352,11 @@ Gallery = (function() {
     var zIndex = $("#gallery-item-"+data.userId+" span:not(.text-span)").length - 5;
     $("#"+data.id).parent().css("z-index",zIndex);
     ($("#"+data.id).parent()).click(function() { cardClickHandler(this); });
+      assignZIndex();
   }
   
   function updateImageCard(data) {
-    console.log("update image card");
+    //console.log("update image card");
     data.id = data.id.replace(" ","-");
     $("#"+data.id).attr("src", data.src);
   }
@@ -361,6 +368,7 @@ Gallery = (function() {
     var zIndex = $("#gallery-item-"+data.userId+" span:not(.text-span)").length - 5;
     $("#"+data.id).parent().css("z-index",zIndex);
     ($("#"+data.id).parent()).click(function() { cardClickHandler(this); });
+      assignZIndex();
   }
   
   function updateTextCard(data) {
@@ -409,8 +417,12 @@ Gallery = (function() {
       drawText(value);
     } else if (key === "clear") {
       drawClear();
+    } else if (key === "avatar") {
+      drawAvatar(value);
     }
   }
+  
+  
   
   function drawClear(text) {
     var message = "gallery-clear";
@@ -471,7 +483,6 @@ Gallery = (function() {
           miniCtx.fillStyle="#000000";
           miniCtx.fillRect(0,((canvasWidth - height) / 2),width,height + 2);
           miniCtx.drawImage(canvas, 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
-          
           if (drawNetLogoCanvas) {
             miniCtx.drawImage(document.getElementsByClassName("netlogo-canvas")[0], 1, ((canvasWidth - height) / 2) + 1, width - 2, height);
           }
@@ -506,6 +517,27 @@ Gallery = (function() {
         hubnetMessage: message
       }); 
     }
+  }
+  
+  function drawAvatar(key) {
+    var shape = key.substring(0, key.indexOf("-"));
+    var color = parseFloat(key.substring( key.indexOf("-") + 1, key.length));
+    var avatarCanvasId = "avatarCanvasView";
+    var width = 200;
+    var height = 200;
+    var miniCanvas = document.getElementById(avatarCanvasId);
+    var miniCtx = miniCanvas.getContext('2d');
+    miniCtx.fillStyle="#000000";
+    miniCtx.fillRect(0,0,300, 300);
+    avatarShapeDrawer = new ShapeDrawer({}, miniCtx.onePixel);
+    universe.turtleDrawer.turtleShapeDrawer.drawAvatar(miniCtx, color, shape, 20);
+    message = document.getElementById(avatarCanvasId).toDataURL("image/jpeg", imageQuality); 
+    //console.log(message);
+    socket.emit("send reporter", {
+      hubnetMessageSource: "all-users", 
+      hubnetMessageTag: "canvas-avatar", 
+      hubnetMessage: message
+    }); 
   }
   
   function drawMap(key) {

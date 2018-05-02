@@ -74,12 +74,49 @@
 
 .gbcc-gallery .arrow {
   position: absolute;
-  top:45%;
   text-align: center;
-  display:none;
+  //display:none;
   opacity: 0.6;
+}
+
+.gbcc-gallery.small .arrow {
+  top:45%;
+  width: 20px;
+  height: 20px;
+}
+
+.gbcc-gallery.medium .arrow {
+  top:45%;
   width: 25px;
   height: 25px;
+}
+
+.gbcc-gallery.large .arrow {
+  top:45%;
+  width: 25px;
+  height: 25px;
+}
+
+.gbcc-gallery.small .arrow-right {
+  left:60px;
+}
+
+.gbcc-gallery.medium .arrow-right {
+  left:95px;
+}
+
+.gbcc-gallery.large .arrow-right {
+  left:135px;
+}
+
+.gbcc-gallery .arrow-left {
+  border-top-left-radius: 50%;
+  border-bottom-left-radius: 50%;
+}
+
+.gbcc-gallery .arrow-right {
+  border-top-right-radius: 50%;
+  border-bottom-right-radius: 50%;
 }
 
 .gbcc-gallery .forever-icon:hover {
@@ -95,10 +132,6 @@
 
 .gbcc-gallery .arrow i {
   color: black;
-}
-
-.gbcc-gallery .arrow-right {
-  left:85%;
 }
 
 .gbcc-gallery .arrow-left {
@@ -212,6 +245,14 @@
 
 .gbcc-gallery .gray-border {
   border: 5px solid #ddd;
+}
+
+.gbcc-gallery [myuser = "true"] {
+  border: 5px solid #BCBCE5;
+}
+
+i {
+  font-size: 24px; 
 }
 
 // extensions/

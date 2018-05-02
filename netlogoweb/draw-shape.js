@@ -20,7 +20,7 @@
         thickness = 1;
       }
       ctx.translate(.5, -.5);
-      ctx.scale(-1 / IMAGE_SIZE, 1 / IMAGE_SIZE);
+      ctx.scale(-1 / IMAGE_SIZE, 1 / IMAGE_SIZE);     
       this.setTransparency(ctx, color);
       ctx.save();
       ctx.beginPath();
@@ -29,6 +29,22 @@
       this.drawRawShape(ctx, color, shapeName, thickness);
       ctx.restore();
     };
+    
+    //GBCC
+    ShapeDrawer.prototype.drawAvatar = function(ctx, color, shapeName, thickness) {
+      if (thickness == null) {
+        thickness = 1;
+      }
+      ctx.translate(.5, -.5);
+      this.setTransparency(ctx, color);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, IMAGE_SIZE, IMAGE_SIZE);
+      ctx.clip();
+      this.drawRawShape(ctx, color, shapeName, thickness);
+      ctx.restore();
+    };
+    // END GBCC
 
     ShapeDrawer.prototype.drawRawShape = function(ctx, color, shapeName, thickness) {
       var elem, j, len, ref, shape;
